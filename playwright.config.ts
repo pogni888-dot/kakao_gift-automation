@@ -13,6 +13,8 @@ import { defineConfig, devices } from '@playwright/test';
  */
 export default defineConfig({
   testDir: './tests',
+  /* CI 환경에서는 로컬 크롬 의존 테스트(kakao_*) 제외 */
+  testIgnore: process.env.CI ? '**/kakao_*.spec.ts' : undefined,
   /* Run tests in files in parallel */
   fullyParallel: true,
   /* Fail the build on CI if you accidentally left test.only in the source code. */
@@ -25,7 +27,9 @@ export default defineConfig({
   reporter: 'html',
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
-    headless: false,
+    /* CI 환경에서는 Headless 모드 사용 (화면 없이 실행), 로컬에서는 화면 보임 */
+    headless: !!process.env.CI,
+
     /* Base URL to use in actions like `await page.goto('')`. */
     // baseURL: 'http://localhost:3000',
 
