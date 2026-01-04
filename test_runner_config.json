@@ -1,0 +1,5 @@
+{
+    "testFile": "tests/kakao_resume2_clean.spec.ts",
+    "targetCell": "L53",
+    "webhookUrl": "https://script.google.com/macros/s/AKfycbypBHFV5wERziXeLdbPARPoh09bn4nQIxk_nM90z6dKp625egkt7alL4MSYPoDiajA/exec"
+}

@@ -1,0 +1,21 @@
+{
+  "name": "levyplay",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test:chrome": "npx playwright test --project=GoogleChrome",
+    "test:mobile": "npx playwright test --project=\"Mobile Chrome\""
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "@playwright/test": "^1.56.1",
+    "@types/node": "^24.10.1"
+  },
+  "dependencies": {
+    "sqlite3": "^5.1.7"
+  }
+}
