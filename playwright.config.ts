@@ -13,8 +13,8 @@ import { defineConfig, devices } from '@playwright/test';
  */
 export default defineConfig({
   testDir: './tests',
-  /* CI 환경에서는 로컬 크롬 의존 테스트(kakao_*) 제외 */
-  testIgnore: process.env.CI ? '**/kakao_*.spec.ts' : undefined,
+  /* CI 환경에서는 로컬 크롬 연결(CDP)이 필요한 특정 파일들만 제외 */
+  testIgnore: process.env.CI ? ['**/kakao_giftbox_cdp.spec.ts', '**/kakao_wishlist.spec.ts'] : undefined,
   /* Run tests in files in parallel */
   fullyParallel: true,
   /* Fail the build on CI if you accidentally left test.only in the source code. */
