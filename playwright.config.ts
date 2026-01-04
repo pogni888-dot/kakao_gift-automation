@@ -74,15 +74,15 @@ export default defineConfig({
       name: 'MicrosoftEdge',
       use: { ...devices['Desktop Edge'], channel: 'msedge' },
     },
-    //{
-    //   name: 'GoogleChrome',
-    //   use: {
-    //     ...devices['Desktop Chrome'],
-    //     channel: 'chrome',
-    //     viewport: null, // Override device viewport
-    //     deviceScaleFactor: undefined, // Unset device scale factor
-    //   },
-    // },
+    {
+      name: 'GoogleChrome',
+      use: {
+        ...devices['Desktop Chrome'],
+        channel: 'chrome',
+        viewport: null, // Override device viewport
+        deviceScaleFactor: undefined, // Unset device scale factor
+      },
+    },
   ],
 
   /* Run your local dev server before starting the tests */
