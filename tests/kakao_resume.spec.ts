@@ -55,7 +55,7 @@ test('카카오 로그인 테스트', async ({ page }) => {
     await page.waitForTimeout(1000);
 
     // 6. 구매하기 버튼 클릭
-    await page.click('button.btn_g');
+    await page.locator('button.btn_g').nth(1).click();
     await page.waitForTimeout(1000);
 
     // 7. 친구 설정 체크박스 클릭
