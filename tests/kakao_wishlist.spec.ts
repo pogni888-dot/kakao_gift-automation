@@ -29,8 +29,8 @@ test('카카오 로그인 테스트', async ({ page }) => {
     // "친구 다시 선택하기" 버튼이 혹시라도 남아있다면 클릭해서 초기화 시도
     // 1.5 "친구 다시 선택하기" 버튼이 보이면 UI를 통해 명시적으로 초기화
     try {
-        // 사용자가 요청한 대로 strong 태그의 텍스트가 '친구 다시 선택하기'인 경우를 찾음
-        const resetBtn = page.locator('strong.tit_receiver:has-text("친구 다시 선택하기")').first();
+        // strong 태그 혹은 텍스트 자체가 '친구 다시 선택하기'인 요소를 찾음 (범용성 확대)
+        const resetBtn = page.locator('strong.tit_receiver').filter({ hasText: '친구 다시 선택하기' }).or(page.getByText('친구 다시 선택하기')).first();
         if (await resetBtn.isVisible()) {
             console.log('🔄 [초기화] 친구 다시 선택하기 클릭');
             await resetBtn.click();
