@@ -69,13 +69,19 @@ jobs:
           sudo docker stop levyplay-container || true
           sudo docker rm levyplay-container || true
 
-          # 4. 새 컨테이너 실행 (항상 재시작, 3001번 포트 사용, Playwright용 권한 설정)
-          # --ipc=host: 브라우저 충돌 방지
+          # 4. 새 컨테이너 실행 (항상 재시작, 3001번 포트 사용)
+          # auth.json이 있으면 마운트 (로그인 유지)
+          AUTH_MOUNT=""
+          if [ -f "auth.json" ]; then
+            AUTH_MOUNT="-v $(pwd)/auth.json:/app/auth.json"
+          fi
+
           sudo docker run -d \
             --name levyplay-container \
             --restart unless-stopped \
             -p 3001:3001 \
             --ipc=host \
+            $AUTH_MOUNT \
             levyplay-app
             
           # 5. 불필요한 미사용 이미지 정리 (용량 확보)
