@@ -1,13 +1,22 @@
 import { test, expect } from '@playwright/test';
-import { kakaoLogin } from '../utils/kakaoLogin';
+import path from 'path';
+import fs from 'fs';
+
+// auth.json 사용 설정 (generate_auth.spec.ts 선행 실행 필수)
+const authFile = path.resolve(__dirname, '../auth.json');
+if (!fs.existsSync(authFile)) {
+    console.warn('⚠️ auth.json이 없습니다! 먼저 generate_auth.spec.ts를 실행해주세요.');
+}
+test.use({ storageState: authFile });
 
 test('카카오 로그인 테스트', async ({ page }) => {
-    test.setTimeout(120000); // 타임아웃을 120초로 늘림 (로그인 대기 포함)
+    test.setTimeout(60000);
 
-    // ===== 자동 로그인 처리 =====
-    await kakaoLogin(page);
+    // 1. 카카오 선물하기 홈으로 이동
+    await page.goto('https://gift.kakao.com/home');
+    await page.waitForTimeout(1000);
 
-    // 3. 검색을 통해 상품 상세 페이지 진입
+    // 2. 검색을 통해 상품 상세 페이지 진입
     console.log('상품 검색 시작: 초콜릿');
     await page.click('a.link_search');
     await page.fill('#searchInput', '초콜릿');
@@ -26,8 +35,7 @@ test('카카오 로그인 테스트', async ({ page }) => {
     const productTitle = await productTitleLocator.innerText();
     console.log(`선택된 상품명: ${productTitle}`);
 
-    // 4. 위시리스트(찜) 버튼 클릭
-    // 상세페이지 내 찜하기 버튼 식별 (button.btn_wish)
+    // 3. 위시리스트(찜) 버튼 클릭
     const wishBtn = page.locator('button.btn_wish').first();
     await wishBtn.click();
     await page.waitForTimeout(1000);
