@@ -110,21 +110,20 @@ test('카카오 로그인 세션 생성 및 저장', async ({ page }) => {
         console.log('❌ 로그인 실패. auth.json이 제대로 생성되지 않을 수 있습니다.');
     }
 
-    // 8. 세션(쿠키) 저장
-    await page.context().storageState({ path: authFile });
+    // 8. 세션(쿠키만) 저장 — localStorage는 제거 (수신자 정보 등 잔여 데이터 방지)
+    const storageState = await page.context().storageState();
+    const cookiesOnly = {
+        cookies: storageState.cookies,
+        origins: [] // localStorage 비움 → 수신자/장바구니 등 이전 상태가 남지 않음
+    };
+    fs.writeFileSync(authFile, JSON.stringify(cookiesOnly, null, 2));
 
     // 9. 저장 결과 확인
-    if (fs.existsSync(authFile)) {
-        const data = fs.readFileSync(authFile, 'utf8');
-        const authData = JSON.parse(data);
-        console.log(`💾 auth.json 저장 완료! (쿠키 ${authData.cookies.length}개)`);
+    console.log(`💾 auth.json 저장 완료! (쿠키 ${cookiesOnly.cookies.length}개, localStorage 제거)`);
 
-        if (authData.cookies.length < 5) {
-            console.log('⚠️ 쿠키가 너무 적습니다. 로그인이 완전히 되지 않았을 수 있습니다.');
-        } else {
-            console.log('🎉 세션 생성 성공! 이제 다른 테스트 파일을 실행하면 자동 로그인됩니다.');
-        }
+    if (cookiesOnly.cookies.length < 5) {
+        console.log('⚠️ 쿠키가 너무 적습니다. 로그인이 완전히 되지 않았을 수 있습니다.');
     } else {
-        console.log('❌ auth.json 파일 생성 실패');
+        console.log('🎉 세션 생성 성공! 이제 다른 테스트 파일을 실행하면 자동 로그인됩니다.');
     }
 });
