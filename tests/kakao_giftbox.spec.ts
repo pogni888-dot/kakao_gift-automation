@@ -39,11 +39,13 @@ test('장바구니 테스트', async ({ page }) => {
                 await page.waitForTimeout(1000);
             }
 
-            // 닫기 버튼 클릭 (X 버튼이나 '닫기' 텍스트)
-            const closeBtn = page.locator('span:has-text("닫기")').first();
-            if (await closeBtn.isVisible()) {
-                console.log('🔄 [초기화] 닫기 버튼 클릭');
-                await closeBtn.click();
+            // 닫기 버튼 대신 팝업 외부(딤드 영역) 클릭하여 닫기 시도
+            // cu-popup-wrapper2 태그가 화면 전체를 덮는 딤드 레이어입니다.
+            const dimmedLayer = page.locator('cu-popup-wrapper2').first();
+            if (await dimmedLayer.isVisible()) {
+                console.log('🔄 [초기화] 팝업 닫기 (딤드 영역 클릭)');
+                // 중앙의 팝업창을 피하기 위해 좌상단 구석(10, 10)을 클릭
+                await dimmedLayer.click({ position: { x: 10, y: 10 }, force: true });
             }
         }
     } catch (e) {
