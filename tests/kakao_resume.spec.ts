@@ -40,7 +40,7 @@ test('카카오 로그인 테스트', async ({ page }) => {
             }
 
             // 닫기 버튼 클릭 (X 버튼이나 '닫기' 텍스트)
-            const closeBtn = page.locator('button.btn_close, button:has-text("닫기"), a:has-text("닫기")').first();
+            const closeBtn = page.locator('span.ico_close, button.btn_close, button:has-text("닫기"), a:has-text("닫기")').first();
             if (await closeBtn.isVisible()) {
                 console.log('🔄 [초기화] 닫기 버튼 클릭');
                 await closeBtn.click();
