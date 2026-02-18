@@ -8,6 +8,17 @@ const API_BASE = isProduction ? window.location.origin : 'http://localhost:3001'
 
 const socket = io(API_BASE);
 
+const testDescriptions = {
+  'kakao_gift.spec.ts': '간단한 검색 기능',
+  'kakao_login.spec.ts': '로그인 기능',
+  'kakao_resume.spec.ts': '상품 검색 및 상세 페이지 내 옵션 설정 & 친구 선택 후 주문서 진입',
+  'kakao_giftbox.spec.ts': '상품 검색, 장바구니 추가/진입, 주문서 진입 (옵션형 배송 상품 자동 설정)',
+  'kakao_resume2.spec.ts': '상품 검색 및 상세 페이지 내 옵션 설정 & 친구 선택 후 주문서 진입',
+  'kakao_giftpage.spec.ts': '상품 검색 및 상세페이지 진입',
+  'kakao_wishlist.spec.ts': '상품 검색 및 상세페이지 내 위시리스트 추가',
+  'generate_auth.spec.ts': '서버 내 카카오 로그인 세션(auth.json) 생성 및 저장',
+};
+
 function App() {
   const [tests, setTests] = useState([]);
   const [activeTest, setActiveTest] = useState(null);
@@ -107,6 +118,12 @@ function App() {
         <div className="test-grid">
           {tests.map(test => (
             <div key={test} className={`test-card ${activeTest === test ? 'running' : ''}`}>
+              {testDescriptions[test] && (
+                <div className="tooltip">
+                  {testDescriptions[test]}
+                  <div className="tooltip-arrow"></div>
+                </div>
+              )}
               <div className="card-header">
                 <div className="file-icon">TS</div>
                 <h3>{test}</h3>

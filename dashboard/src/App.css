@@ -171,7 +171,59 @@ body {
   padding: 1.5rem;
   transition: transform 0.2s, box-shadow 0.2s;
   position: relative;
-  overflow: hidden;
+  overflow: visible;
+  /* 말풍선이 카드 밖으로 나가도 보이게 설정 */
+}
+
+/* Tooltip Styles */
+.tooltip {
+  position: absolute;
+  bottom: 100%;
+  /* 카드 바로 위 */
+  left: 50%;
+  transform: translateX(-50%) translateY(10px);
+  /* 초기 위치 약간 아래 */
+  background: rgba(15, 23, 42, 0.95);
+  color: #fff;
+  padding: 0.8rem 1rem;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  white-space: normal;
+  /* 긴 텍스트 줄바꿈 허용 */
+  width: max-content;
+  max-width: 250px;
+  /* 너무 길어지면 줄바꿈 */
+  text-align: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  border: 1px solid var(--accent-primary);
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  pointer-events: none;
+  /* 툴팁 위에서 마우스 이벤트 방지 */
+  z-index: 100;
+  margin-bottom: 12px;
+  /* 카드와의 간격 */
+}
+
+.tooltip-arrow {
+  position: absolute;
+  top: 100%;
+  /* 툴팁 바로 아래 */
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 6px;
+  border-style: solid;
+  border-color: var(--accent-primary) transparent transparent transparent;
+}
+
+/* Hover Effect */
+.test-card:hover .tooltip {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) translateY(0);
+  /* 제자리로 올라옴 */
 }
 
 .test-card:hover {
