@@ -40,6 +40,21 @@ app.get('/api/tests', (req, res) => {
     });
 });
 
+// Get auth.json last modified time (for 24h lockout)
+app.get('/api/auth-status', (req, res) => {
+    const authPath = path.join(__dirname, 'auth.json');
+    try {
+        if (fs.existsSync(authPath)) {
+            const stats = fs.statSync(authPath);
+            res.json({ lastModified: stats.mtimeMs });
+        } else {
+            res.json({ lastModified: null });
+        }
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
 // Serve test results (videos, screenshots)
 const testResultsDir = path.join(__dirname, 'test-results');
 if (!fs.existsSync(testResultsDir)) {

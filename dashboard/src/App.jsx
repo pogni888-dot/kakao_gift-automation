@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from 'react';
 import { io } from 'socket.io-client';
-import { Play, Square, Terminal, CheckCircle, XCircle, Activity } from 'lucide-react';
+import { Play, Square, Terminal, CheckCircle, XCircle, Activity, Lock } from 'lucide-react';
 import './App.css';
 
 const isProduction = import.meta.env.PROD;
@@ -26,12 +26,22 @@ function App() {
   const [videoUrl, setVideoUrl] = useState(null);
   const [isConnected, setIsConnected] = useState(false);
   const terminalEndRef = useRef(null);
+  const [authLastRun, setAuthLastRun] = useState(0);
+
+  const fetchAuthStatus = () => {
+    fetch(`${API_BASE}/api/auth-status`)
+      .then(res => res.json())
+      .then(data => setAuthLastRun(data.lastModified || 0))
+      .catch(err => console.error("Failed to fetch auth status", err));
+  };
 
   useEffect(() => {
     fetch(`${API_BASE}/api/tests`)
       .then(res => res.json())
       .then(data => setTests(data))
       .catch(err => console.error("Failed to fetch tests", err));
+
+    fetchAuthStatus();
 
     socket.on('connect', () => setIsConnected(true));
     socket.on('disconnect', () => setIsConnected(false));
@@ -54,6 +64,7 @@ function App() {
       } else {
         setLogs(prev => [...prev, `ℹ️ No video recording found.\n`]);
       }
+      fetchAuthStatus();
     });
 
     return () => {
@@ -72,6 +83,12 @@ function App() {
 
   const runTest = (filename) => {
     if (activeTest) return;
+
+    if (filename === 'generate_auth.spec.ts' && (Date.now() - authLastRun < 24 * 60 * 60 * 1000)) {
+      alert("⚠️ 이 테스트는 최근 24시간 내에 실행된 기록이 있어 잠겨있습니다.");
+      return;
+    }
+
     setLogs([]); // Clear logs on new run
     setVideoUrl(null);
     socket.emit('run-test', filename);
@@ -116,36 +133,48 @@ function App() {
 
       <main className="main-content">
         <div className="test-grid">
-          {tests.map(test => (
-            <div key={test} className={`test-card ${activeTest === test ? 'running' : ''}`}>
-              {testDescriptions[test] && (
-                <div className="tooltip">
-                  {testDescriptions[test]}
-                  <div className="tooltip-arrow"></div>
-                </div>
-              )}
-              <div className="card-header">
-                <div className="file-icon">TS</div>
-                <h3>{test}</h3>
-              </div>
-              <div className="card-actions">
-                {activeTest === test ? (
-                  <button onClick={stopTest} className="btn btn-stop">
-                    <Square size={16} /> Stop
-                  </button>
-                ) : (
-                  <button
-                    onClick={() => runTest(test)}
-                    className="btn btn-run"
-                    disabled={activeTest !== null}
-                  >
-                    <Play size={16} /> Run Test
-                  </button>
+          {tests.map(test => {
+            const isAuthTest = test === 'generate_auth.spec.ts';
+            const isLocked = isAuthTest && (Date.now() - authLastRun < 24 * 60 * 60 * 1000);
+
+            return (
+              <div key={test} className={`test-card ${activeTest === test ? 'running' : ''}`}>
+                {testDescriptions[test] && (
+                  <div className="tooltip">
+                    {testDescriptions[test]}
+                    {isLocked && (
+                      <div style={{ color: '#ef4444', marginTop: '6px', fontSize: '0.8rem', paddingTop: '4px', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
+                        🔒 최근 24시간 내 실행됨
+                      </div>
+                    )}
+                    <div className="tooltip-arrow"></div>
+                  </div>
                 )}
+                <div className="card-header">
+                  <div className="file-icon">TS</div>
+                  <h3>{test}</h3>
+                </div>
+                <div className="card-actions">
+                  {activeTest === test ? (
+                    <button onClick={stopTest} className="btn btn-stop">
+                      <Square size={16} /> Stop
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => runTest(test)}
+                      className={`btn ${isLocked ? 'btn-locked' : 'btn-run'}`}
+                      disabled={activeTest !== null || isLocked}
+                      style={isLocked ? { background: '#334155', cursor: 'not-allowed', opacity: 0.7, boxShadow: 'none' } : {}}
+                    >
+                      {isLocked ? <Lock size={16} /> : <Play size={16} />}
+                      {isLocked ? 'Locked' : 'Run Test'}
+                    </button>
+                  )}
+                </div>
+                {activeTest === test && <div className="loading-bar"><div className="bar-fill"></div></div>}
               </div>
-              {activeTest === test && <div className="loading-bar"><div className="bar-fill"></div></div>}
-            </div>
-          ))}
+            );
+          })}
           {tests.length === 0 && <div className="empty-state">No tests found in /tests folder.</div>}
         </div>
 
