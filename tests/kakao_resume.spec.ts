@@ -30,7 +30,7 @@ test('카카오 로그인 테스트', async ({ page }) => {
     await page.waitForTimeout(1000);
 
     const searchInput = page.locator('#searchInput');
-    await searchInput.fill('볼펜');
+    await searchInput.fill('[각인선물]사파리 볼펜-차콜블랙');
     await page.waitForTimeout(1000);
     await searchInput.press('Enter');
     await page.waitForTimeout(1000);
