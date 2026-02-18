@@ -103,7 +103,7 @@ function App() {
       <header className="header">
         <div className="logo">
           <Activity className="icon-pulse" size={28} />
-          <h1>Automation Hub</h1>
+          <h1>최민호 자동화 포트폴리오</h1>
         </div>
         <div className="status-badge">
           <div className={`status-dot ${isConnected ? 'online' : 'offline'}`} />
