@@ -22,6 +22,33 @@ test('카카오 로그인 테스트', async ({ page }) => {
     await page.reload();
     await page.waitForTimeout(2000);
 
+    // "친구 다시 선택하기" 버튼이 보이면 UI를 통해 명시적으로 초기화
+    try {
+        const resetBtn = page.locator('button:has-text("친구 다시 선택하기"), a:has-text("친구 다시 선택하기")').first();
+        if (await resetBtn.isVisible()) {
+            console.log('🔄 [초기화] 친구 다시 선택하기 클릭');
+            await resetBtn.click();
+            await page.waitForTimeout(1000);
+
+            // 확인 버튼 클릭
+            const confirmBtn = page.locator('button:has-text("확인"), a:has-text("확인")').first();
+            if (await confirmBtn.isVisible()) {
+                console.log('🔄 [초기화] 확인 버튼 클릭');
+                await confirmBtn.click();
+                await page.waitForTimeout(1000);
+            }
+
+            // 닫기 버튼 클릭 (X 버튼이나 '닫기' 텍스트)
+            const closeBtn = page.locator('button.btn_close, button:has-text("닫기"), a:has-text("닫기")').first();
+            if (await closeBtn.isVisible()) {
+                console.log('🔄 [초기화] 닫기 버튼 클릭');
+                await closeBtn.click();
+            }
+        }
+    } catch (e) {
+        console.log('⚠️ 초기화 로직 수행 중 오류 (무시됨):', e);
+    }
+
     //친구선택
     /*
     const friendList = page.locator('ul.list_recommfriend > li.ng-star-inserted').first();
