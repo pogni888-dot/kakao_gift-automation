@@ -14,6 +14,30 @@ test('카카오 로그인 테스트', async ({ page }) => {
 
     // 1. 카카오 선물하기 홈으로 이동
     await page.goto('https://gift.kakao.com/home');
+
+    // 🔥 수신자가 이미 지정된 상태를 초기화하기 위한 로직 추가
+    await page.evaluate(() => {
+        try {
+            localStorage.clear();
+            sessionStorage.clear();
+        } catch (e) { }
+    });
+    // 클리어 후 적용을 위해 새로고침
+    await page.reload();
+    await page.waitForTimeout(2000);
+
+    // "친구 다시 선택하기" 버튼이 혹시라도 남아있다면 클릭해서 초기화 시도
+    try {
+        const resetBtn = page.locator('button:has-text("친구 다시 선택하기"), a:has-text("친구 다시 선택하기")').first();
+        if (await resetBtn.isVisible()) {
+            console.log('⚠️ 수신자가 지정되어 있어 초기화를 시도합니다...');
+            await resetBtn.click();
+            await page.waitForTimeout(2000);
+            // 다시 홈으로 이동해서 깨끗한 상태 만들기
+            await page.goto('https://gift.kakao.com/home');
+        }
+    } catch (e) { }
+
     await page.waitForTimeout(1000);
 
     // 2. 검색을 통해 상품 상세 페이지 진입
