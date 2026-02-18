@@ -1,21 +1,55 @@
+import { test, expect } from '@playwright/test';
 
-import { test, expect, chromium } from '@playwright/test';
+// auth.json이 있다면 로그인 상태를 불러옵니다.
+// test.use({ storageState: 'auth.json' }); 
 
-test('위시리스트 추가 및 확인 테스트', async () => {
-    test.setTimeout(60000);
+import path from 'path';
+const authFile = path.resolve(__dirname, '../auth.json');
+test.use({ storageState: authFile });
 
-    // 1. 이미 실행된 브라우저(Port 9222)에 연결
-    // 주의: 터미널에서 chrome.exe --remote-debugging-port=9222 --user-data-dir="C:/ChromeDevSession" 명령어로 실행된 브라우저여야 합니다.
-    const browser = await chromium.connectOverCDP('http://localhost:9222');
+test('카카오 로그인 테스트', async ({ page }) => {
+    test.setTimeout(60000); // 타임아웃을 60초로 늘림
+    // 1. 카카오 선물하기 홈으로 이동
+    await page.goto('https://gift.kakao.com/home');
+    await page.waitForTimeout(1000);
 
-    // 2. 브라우저의 첫 번째 컨텍스트(창) 가져오기
-    const defaultContext = browser.contexts()[0];
-    if (!defaultContext) {
-        throw new Error('브라우저 컨텍스트를 찾을 수 없습니다. 디버깅 모드로 크롬이 실행되었는지 확인해주세요.');
+    // 2. 로그인 상태 확인 및 로그인
+    // [사용자 요청 로직] 로그인 버튼 클릭 시 'btn_logout' 요소가 나타나면 로그인 된 상태로 판단
+
+    // 먼저 명시적으로 로그아웃 버튼이 떠있는지 확인(혹시나 해서)
+    if (await page.locator('.btn_logout').isVisible()) {
+        console.log('이미 로그인되어 있습니다. (로그아웃 버튼 감지)');
+    }
+    else if (await page.isVisible('a.link_login')) {
+        console.log('로그인 버튼 감지. 클릭하여 상태를 확인합니다.');
+        await page.click('a.link_login');
+        await page.waitForTimeout(1500); // 팝업/화면전환 대기
+
+        // 클릭 후 로그아웃 버튼이 보이는지 확인
+        if (await page.locator('.btn_logout').isVisible()) {
+            console.log('로그인 버튼 클릭 후 로그아웃 버튼이 확인되었습니다. -> 이미 로그인 상태');
+        } else {
+            console.log('로그아웃 버튼이 보이지 않습니다. -> 로그인이 필요합니다.');
+
+            // 3. 아이디/비밀번호 입력 (업데이트된 계정 정보)
+            try {
+                await page.fill('#loginId--1', 'pogni822@naver.com');
+                await page.waitForTimeout(1000);
+
+                await page.fill('#password--2', 'wpwnehQ!12');
+                await page.waitForTimeout(1000);
+
+                // 4. 로그인 버튼 클릭
+                await page.click('button.btn_g.highlight.submit');
+                await page.waitForTimeout(2000);
+            } catch (e) {
+                console.log('로그인 입력 폼을 찾을 수 없습니다. 이미 로그인이 완료되었거나 페이지 구조가 다를 수 있습니다.');
+            }
+        }
+    } else {
+        console.log('로그인 버튼도 보이지 않습니다. 이미 로그인된 상태로 간주합니다.');
     }
 
-    // 3. 활성화된 페이지 가져오기 (첫 번째 탭 사용)
-    const page = defaultContext.pages()[0] || await defaultContext.newPage();
 
     // 3. 검색을 통해 상품 상세 페이지 진입
     console.log('상품 검색 시작: 초콜릿');
@@ -31,7 +65,7 @@ test('위시리스트 추가 및 확인 테스트', async () => {
     await page.waitForTimeout(2000);
 
     // 상품명 저장 (검증용)
-    const productTitleLocator = page.locator('h2.tit_subject');
+    const productTitleLocator = page.locator('h4.tit_subject');
     await productTitleLocator.waitFor();
     const productTitle = await productTitleLocator.innerText();
     console.log(`선택된 상품명: ${productTitle}`);

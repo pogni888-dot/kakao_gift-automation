@@ -8,7 +8,8 @@ test('카카오 선물하기 쥬시쿨 검색 테스트', async ({ page }) => {
 
     // 2. 검색 버튼(돋보기 아이콘)을 클릭하여 검색 입력창을 엽니다.
     // 이전에 브라우저 검사를 통해 알아낸 선택자('a.link_search')를 사용합니다.
-    await page.click('a.link_search');
+    await page.waitForLoadState('networkidle');
+    await page.click('a.link_search', { force: true });
     await page.waitForTimeout(3000); // 3초 대기
 
     // 3. 검색 입력창이 화면에 나타날 때까지 기다립니다.
@@ -17,8 +18,11 @@ test('카카오 선물하기 쥬시쿨 검색 테스트', async ({ page }) => {
 
     // 4. '쥬시쿨'을 입력하고 엔터 키를 누릅니다.
     await searchInput.fill('쥬시쿨');
-    await page.waitForTimeout(3000); // 3초 대기
-    await searchInput.press('Enter');
+    await page.waitForTimeout(1000);
+
+    // 엔터키 입력 방식을 변경 (명시적 포커스 후 키보드 입력)
+    await searchInput.focus();
+    await page.keyboard.press('Enter');
     await page.waitForTimeout(5000); // 3초 대기
 
     // 5. 검색 결과 페이지로 이동했는지 확인합니다.

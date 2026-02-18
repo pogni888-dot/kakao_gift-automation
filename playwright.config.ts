@@ -24,11 +24,11 @@ export default defineConfig({
   /* Opt out of parallel tests on CI. */
   workers: process.env.CI ? 1 : undefined,
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
-  reporter: 'html',
+  reporter: 'list', // 서버에서 멈추지 않도록 html 대신 list 사용
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
-    /* CI 환경에서는 Headless 모드 사용 (화면 없이 실행), 로컬에서는 화면 보임 */
-    headless: !!process.env.CI,
+    /* 서버(Docker)에서는 headless: true 필수! (모니터/X서버 없음) */
+    headless: true,
 
     /* Base URL to use in actions like `await page.goto('')`. */
     // baseURL: 'http://localhost:3000',
@@ -36,12 +36,22 @@ export default defineConfig({
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: 'on-first-retry',
 
-    /* Viewport configuration */
-    viewport: null,
+    /* Viewport: 1920x1080 고정 → PC 화면처럼 렌더링 (모바일 레이아웃 방지) */
+    viewport: { width: 1920, height: 1080 },
+    deviceScaleFactor: 1,
+    isMobile: false,
+    hasTouch: false,
+    userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+
     launchOptions: {
-      args: ["--start-maximized"]
+      args: [
+        "--window-size=1920,1080",
+        "--force-device-scale-factor=1",
+        "--disable-gpu",
+        "--no-sandbox"
+      ]
     },
-    video: 'off', // 비디오 녹화 설정 추가 ('on', 'off', 'retain-on-failure', 'on-first-retry')
+    video: 'on', // 비디오 녹화 켜기 (모든 테스트 녹화)
   },
 
   /* Configure projects for major browsers */
@@ -49,7 +59,7 @@ export default defineConfig({
     {
       name: 'chromium',
       use: {
-        viewport: null,
+        // viewport: null, // 상위 설정(1920x1080) 따름
       },
     },
 
@@ -74,19 +84,19 @@ export default defineConfig({
     // },
 
     /* Test against branded browsers. */
-    {
-      name: 'MicrosoftEdge',
-      use: { ...devices['Desktop Edge'], channel: 'msedge' },
-    },
-    {
-      name: 'GoogleChrome',
-      use: {
-        ...devices['Desktop Chrome'],
-        channel: 'chrome',
-        viewport: null, // Override device viewport
-        deviceScaleFactor: undefined, // Unset device scale factor
-      },
-    },
+    // {
+    //   name: 'MicrosoftEdge',
+    //   use: { ...devices['Desktop Edge'], channel: 'msedge' },
+    // },
+    // {
+    //   name: 'GoogleChrome',
+    //   use: {
+    //     ...devices['Desktop Chrome'],
+    //     channel: 'chrome',
+    //     viewport: null, // Override device viewport
+    //     deviceScaleFactor: undefined, // Unset device scale factor
+    //   },
+    // },
   ],
 
   /* Run your local dev server before starting the tests */

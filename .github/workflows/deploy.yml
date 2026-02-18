@@ -1,0 +1,46 @@
+name: Deploy to Oracle Cloud
+
+on:
+  push:
+    branches: [ main ]  # main 브랜치에 코드가 올라가면 실행
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Deploy to Oracle Cloud via SSH
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.ORACLE_HOST }}        # 오라클 서버 IP (GitHub Secrets에 등록 필요)
+        username: ubuntu                        # 오라클 서버 기본 사용자
+        key: ${{ secrets.ORACLE_SSH_KEY }}      # 오라클 서버 접속용 SSH 비밀키 (GitHub Secrets에 등록 필요)
+        port: 22
+        script: |
+          # 1. 프로젝트 폴더가 없으면 클론, 있으면 폴더로 이동 후 업데이트
+          if [ ! -d "levyplay" ]; then
+            git clone https://github.com/${{ github.repository }}.git levyplay
+            cd levyplay
+          else
+            cd levyplay
+            git pull origin main
+          fi
+
+          # 2. Docker 이미지 빌드 (기존 것 덮어씌움)
+          sudo docker build -t levyplay-app .
+
+          # 3. 기존 컨테이너 중지 및 삭제 (에러 무시)
+          sudo docker stop levyplay-container || true
+          sudo docker rm levyplay-container || true
+
+          # 4. 새 컨테이너 실행 (항상 재시작, 3001번 포트 사용, Playwright용 권한 설정)
+          # --ipc=host: 브라우저 충돌 방지
+          sudo docker run -d \
+            --name levyplay-container \
+            --restart unless-stopped \
+            -p 3001:3001 \
+            --ipc=host \
+            levyplay-app
+            
+          # 5. 불필요한 미사용 이미지 정리 (용량 확보)
+          sudo docker image prune -f

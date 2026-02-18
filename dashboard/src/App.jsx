@@ -1,0 +1,153 @@
+import { useEffect, useState, useRef } from 'react';
+import { io } from 'socket.io-client';
+import { Play, Square, Terminal, CheckCircle, XCircle, Activity } from 'lucide-react';
+import './App.css';
+
+const isProduction = import.meta.env.PROD;
+const API_BASE = isProduction ? window.location.origin : 'http://localhost:3001';
+
+const socket = io(API_BASE);
+
+function App() {
+  const [tests, setTests] = useState([]);
+  const [activeTest, setActiveTest] = useState(null);
+  const [logs, setLogs] = useState([]);
+  const [videoUrl, setVideoUrl] = useState(null);
+  const [isConnected, setIsConnected] = useState(false);
+  const terminalEndRef = useRef(null);
+
+  useEffect(() => {
+    fetch(`${API_BASE}/api/tests`)
+      .then(res => res.json())
+      .then(data => setTests(data))
+      .catch(err => console.error("Failed to fetch tests", err));
+
+    socket.on('connect', () => setIsConnected(true));
+    socket.on('disconnect', () => setIsConnected(false));
+
+    socket.on('test-start', (filename) => {
+      setActiveTest(filename);
+      setLogs(prev => [...prev, `\n--- STARTING TEST: ${filename} ---\n`]);
+    });
+
+    socket.on('test-output', (data) => {
+      setLogs(prev => [...prev, data]);
+    });
+
+    socket.on('test-complete', ({ code, video }) => {
+      setActiveTest(null);
+      setLogs(prev => [...prev, `\n--- TEST COMPLETED WITH EXIT CODE: ${code} ---\n`]);
+      if (video) {
+        setLogs(prev => [...prev, `🎥 Video found: ${video}\n`]);
+        setVideoUrl(video);
+      } else {
+        setLogs(prev => [...prev, `ℹ️ No video recording found.\n`]);
+      }
+    });
+
+    return () => {
+      socket.off('connect');
+      socket.off('disconnect');
+      socket.off('test-start');
+      socket.off('test-output');
+      socket.off('test-complete');
+    };
+  }, []);
+
+  // Auto-scroll terminal
+  useEffect(() => {
+    terminalEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [logs]);
+
+  const runTest = (filename) => {
+    if (activeTest) return;
+    setLogs([]); // Clear logs on new run
+    setVideoUrl(null);
+    socket.emit('run-test', filename);
+  };
+
+  const stopTest = () => {
+    socket.emit('stop-test');
+  };
+
+  return (
+    <div className="container">
+      <header className="header">
+        <div className="logo">
+          <Activity className="icon-pulse" size={28} />
+          <h1>Automation Hub</h1>
+        </div>
+        <div className="status-badge">
+          <div className={`status-dot ${isConnected ? 'online' : 'offline'}`} />
+          {isConnected ? 'System Ready' : 'Disconnected'}
+        </div>
+      </header>
+
+      {videoUrl && (
+        <div className="video-player-section fade-in">
+          <div className="video-wrapper">
+            <div className="video-header">
+              <span>Test Execution Replay</span>
+              <button className="close-video-btn" onClick={() => setVideoUrl(null)}><XCircle size={20} /></button>
+            </div>
+            <video
+              src={`${API_BASE}${videoUrl}`}
+              controls
+              autoPlay
+              muted
+              playsInline
+              className="test-video"
+              onEnded={() => setVideoUrl(null)}
+            />
+          </div>
+        </div>
+      )}
+
+      <main className="main-content">
+        <div className="test-grid">
+          {tests.map(test => (
+            <div key={test} className={`test-card ${activeTest === test ? 'running' : ''}`}>
+              <div className="card-header">
+                <div className="file-icon">TS</div>
+                <h3>{test}</h3>
+              </div>
+              <div className="card-actions">
+                {activeTest === test ? (
+                  <button onClick={stopTest} className="btn btn-stop">
+                    <Square size={16} /> Stop
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => runTest(test)}
+                    className="btn btn-run"
+                    disabled={activeTest !== null}
+                  >
+                    <Play size={16} /> Run Test
+                  </button>
+                )}
+              </div>
+              {activeTest === test && <div className="loading-bar"><div className="bar-fill"></div></div>}
+            </div>
+          ))}
+          {tests.length === 0 && <div className="empty-state">No tests found in /tests folder.</div>}
+        </div>
+
+        <div className="terminal-section">
+          <div className="terminal-header">
+            <Terminal size={18} />
+            <span>Console Output</span>
+            <button className="clear-btn" onClick={() => setLogs([])}>Clear</button>
+          </div>
+          <div className="terminal-window">
+            {logs.map((log, i) => (
+              <div key={i} className="log-line">{log}</div>
+            ))}
+            <div ref={terminalEndRef} />
+          </div>
+        </div>
+      </main>
+    </div>
+  );
+}
+
+export default App;

@@ -1,0 +1,12 @@
+node_modules
+test-results
+playwright-report
+blob-report
+.idea
+.vscode
+.git
+.env
+dashboard/node_modules
+dashboard/dist
+.DS_Store
+Thumbs.db

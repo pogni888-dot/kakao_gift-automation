@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "test:chrome": "npx playwright test --project=chromium",
-    "test:mobile": "npx playwright test --project=\"Mobile Chrome\""
+    "test:mobile": "npx playwright test --project=\"Mobile Chrome\"",
+    "dashboard": "concurrently \"node server.js\" \"npm run dev --prefix dashboard\""
   },
   "keywords": [],
   "author": "",
@@ -16,6 +17,11 @@
     "@types/node": "^24.10.1"
   },
   "dependencies": {
+    "concurrently": "^9.2.1",
+    "cors": "^2.8.6",
+    "express": "^5.2.1",
+    "serve-index": "*",
+    "socket.io": "^4.8.3",
     "sqlite3": "^5.1.7"
   }
 }
