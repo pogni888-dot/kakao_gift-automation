@@ -58,6 +58,16 @@ test('카카오 로그인 테스트', async ({ page }) => {
     await page.locator('button.btn_g').nth(1).click();
     await page.waitForTimeout(1000);
 
+    // 5. 주문정보 동의 버튼 클릭 (커스텀 제작상품)
+    try {
+        await page.locator('button#focus_btn').click({ timeout: 1500 });
+        await page.waitForTimeout(3000);
+        await page.waitForLoadState();
+    } catch (e) {
+        console.log('주문정보 동의 버튼이 없거나 로드되지 않았습니다.');
+        await page.waitForLoadState();
+    }
+
     // 7. 친구 설정 체크박스 클릭
     try {
         const friendList = page.locator('ul.list_recommfriend > li.ng-star-inserted').first();
