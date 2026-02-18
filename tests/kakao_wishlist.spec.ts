@@ -41,9 +41,9 @@ test('카카오 로그인 테스트', async ({ page }) => {
     await page.waitForTimeout(1000);
 
     // 2. 검색을 통해 상품 상세 페이지 진입
-    console.log('상품 검색 시작: 초콜릿');
+    console.log('상품 검색 시작: 쥬시쿨');
     await page.click('a.link_search');
-    await page.fill('#searchInput', '초콜릿');
+    await page.fill('#searchInput', '쥬시쿨');
     await page.keyboard.press('Enter');
     await page.waitForTimeout(2000);
 
