@@ -59,18 +59,39 @@ test('카카오 로그인 세션 생성 및 저장', async ({ page }) => {
             console.log('⚠️ 자동 입력 실패. 이미 입력되었거나 폼을 찾을 수 없습니다.');
         }
 
-        // 6. 로그인 완료 대기
-        // 로그인 성공 시 gift.kakao.com으로 리다이렉트 됨
-        // 2차 인증이 뜨면 최대 4분 대기
-        console.log('⏳ 로그인 완료 대기 중... (2차 인증 시 최대 4분 대기)');
+        // 6. 로그인 완료 대기 (2차 인증 + continue 버튼 처리)
+        console.log('⏳ 로그인 완료 대기 중... (2차 인증 / continue 버튼 자동 처리)');
 
-        try {
-            // gift.kakao.com으로 돌아올 때까지 대기
-            await page.waitForURL(/gift\.kakao\.com/, { timeout: 240000 });
+        const maxWait = 240000; // 최대 4분
+        const startTime = Date.now();
+
+        while (Date.now() - startTime < maxWait) {
+            // gift.kakao.com으로 돌아왔는지 확인
+            if (page.url().includes('gift.kakao.com')) {
+                console.log('✅ 카카오 선물하기 페이지로 돌아왔습니다!');
+                await page.waitForTimeout(2000);
+                break;
+            }
+
+            // 'continue' 버튼이 보이면 클릭
+            try {
+                const continueBtn = page.locator('button:has-text("continue"), a:has-text("continue"), input[value="continue"], button:has-text("Continue"), a:has-text("Continue")').first();
+                if (await continueBtn.isVisible()) {
+                    console.log('🔘 "continue" 버튼 발견! 클릭합니다...');
+                    await continueBtn.click();
+                    await page.waitForTimeout(3000);
+                    continue;
+                }
+            } catch (e) {
+                // 버튼 못 찾으면 무시
+            }
+
+            // 3초마다 체크
             await page.waitForTimeout(3000);
-            console.log('✅ 카카오 선물하기 페이지로 돌아왔습니다!');
-        } catch (e) {
-            // URL 리다이렉트가 안 된 경우, 직접 홈으로 이동 시도
+        }
+
+        // 4분 지났는데도 gift.kakao.com이 아니면 직접 이동
+        if (!page.url().includes('gift.kakao.com')) {
             console.log('📍 리다이렉트 대기 실패. 홈으로 직접 이동합니다...');
             await page.goto('https://gift.kakao.com/home', { waitUntil: 'domcontentloaded' });
             await page.waitForTimeout(3000);
