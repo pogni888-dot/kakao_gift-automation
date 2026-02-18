@@ -53,6 +53,15 @@ jobs:
             # 권한 적용을 위해 그룹 아이디로 실행하거나, 다음 세션부터 적용됨 (sudo 사용하므로 당장은 OK)
           fi
 
+          # 1.6 방화벽(3001번 포트) 열기 (iptables 초기화 문제 해결)
+          # 오라클 클라우드는 기본적으로 iptables가 빡빡해서 포트를 막습니다.
+          # 영구적으로 3001번을 엽니다.
+          if ! sudo iptables -C INPUT -p tcp --dport 3001 -j ACCEPT 2>/dev/null; then
+             echo "Opening port 3001..."
+             sudo iptables -I INPUT 6 -m state --state NEW -p tcp --dport 3001 -j ACCEPT
+             sudo netfilter-persistent save || true  # 설정 저장 (재부팅 시 유지)
+          fi
+
           # 2. Docker 이미지 빌드 (기존 것 덮어씌움)
           sudo docker build -t levyplay-app .
 
