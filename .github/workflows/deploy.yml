@@ -62,8 +62,8 @@ jobs:
              sudo netfilter-persistent save || true  # 설정 저장 (재부팅 시 유지)
           fi
 
-          # 2. Docker 이미지 빌드 (기존 것 덮어씌움)
-          sudo docker build -t levyplay-app .
+          # 2. Docker 이미지 빌드 (캐시 없이 항상 최신 코드 반영)
+          sudo docker build --no-cache -t levyplay-app .
 
           # 3. 기존 컨테이너 중지 및 삭제 (에러 무시)
           sudo docker stop levyplay-container || true
