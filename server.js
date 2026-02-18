@@ -89,9 +89,11 @@ io.on('connection', (socket) => {
         console.log(`Executing: ${fullCommand}`);
 
         // Spawn process using the full command string for better control
+        // detached: true → 프로세스 그룹 생성 (Stop 시 자식 프로세스까지 한번에 종료)
         activeProcess = spawn(fullCommand, {
             cwd: __dirname,
-            shell: true
+            shell: true,
+            detached: true
         });
 
         activeProcess.stdout.on('data', (data) => {
@@ -182,15 +184,20 @@ io.on('connection', (socket) => {
                     }
                 });
             } else {
-                // Unix/Linux/Mac: Standard kill usually works, but might need negative PID for groups
-                // For now, standard kill is often sufficient or use 'tree-kill' package if needed
-                activeProcess.kill();
+                // Unix/Linux/Mac: 프로세스 그룹 전체 종료 (-pid = 그룹 전체)
+                // npx → playwright → chromium 모든 자식 프로세스를 한번에 죽입니다.
+                try {
+                    process.kill(-activeProcess.pid, 'SIGTERM');
+                } catch (err) {
+                    console.error('Failed to kill process group:', err);
+                    // Fallback: 개별 프로세스만 종료
+                    try { activeProcess.kill('SIGKILL'); } catch (e) { }
+                }
             }
 
             socket.emit('test-output', '\n--- Process Terminated by User ---\n');
-            // activeProcess will be set to null in the 'close' event handler
-            // But we null it here to prevent further stop attempts immediately
-            // Note: 'close' event might still fire after this
+            socket.emit('test-complete', { code: -1, video: null });
+            activeProcess = null;
         }
     });
 });
