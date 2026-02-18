@@ -24,7 +24,8 @@ test('카카오 로그인 테스트', async ({ page }) => {
 
     // "친구 다시 선택하기" 버튼이 보이면 UI를 통해 명시적으로 초기화
     try {
-        const resetBtn = page.locator('button:has-text("친구 다시 선택하기"), a:has-text("친구 다시 선택하기")').first();
+        // 사용자가 제보한 클래스명 추가 (우선순위 높임)
+        const resetBtn = page.locator('a.btn_profile.type_noreceiver, button:has-text("친구 다시 선택하기"), a:has-text("친구 다시 선택하기")').first();
         if (await resetBtn.isVisible()) {
             console.log('🔄 [초기화] 친구 다시 선택하기 클릭');
             await resetBtn.click();
