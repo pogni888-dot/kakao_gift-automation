@@ -25,7 +25,7 @@ test('장바구니 테스트', async ({ page }) => {
     // "친구 다시 선택하기" 버튼이 보이면 UI를 통해 명시적으로 초기화
     try {
         // 사용자가 요청한 대로 strong 태그의 텍스트가 '친구 다시 선택하기'인 경우를 찾음
-        const resetBtn = page.locator('strong.tit_receiver:has-text("친구 다시 선택하기"), a.btn_profile.type_noreceiver').first();
+        const resetBtn = page.locator('strong.tit_receiver:has-text("친구 다시 선택하기")').first();
         if (await resetBtn.isVisible()) {
             console.log('🔄 [초기화] 친구 다시 선택하기 클릭');
             await resetBtn.click();
