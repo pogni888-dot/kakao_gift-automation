@@ -4,6 +4,7 @@ const socket = io('http://134.185.101.88:3001');
 
 socket.on('connect', () => {
     console.log('Connected to server');
+    // 1단계: generate_auth로 서버 내에서 로그인 세션 생성
     socket.emit('run-test', 'generate_auth.spec.ts');
 });
 
@@ -16,7 +17,7 @@ socket.on('test-output', (data) => {
 });
 
 socket.on('test-complete', (result) => {
-    console.log('Test complete:', result);
+    console.log('\n\nTest complete:', JSON.stringify(result));
     socket.disconnect();
 });
 

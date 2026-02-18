@@ -24,8 +24,8 @@ test('장바구니 테스트', async ({ page }) => {
     // 2. 검색 버튼을 찾아서 클릭
     await page.click('a.link_search');
 
-    // 3. 검색 화면에서 '메가커피'를 검색
-    await page.fill('#searchInput', '메가커피');
+    // 3. 검색 화면에서 '헤라'를 검색
+    await page.fill('#searchInput', '헤라');
     await page.keyboard.press('Enter');
 
     // 결과 확인을 위해 잠시 대기
