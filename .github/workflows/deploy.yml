@@ -23,7 +23,13 @@ jobs:
             cd levyplay
           else
             cd levyplay
-            git pull origin main
+            # auth.json 백업 (테스트 중 생성된 세션 보존)
+            cp auth.json ../auth_backup.json 2>/dev/null || true
+            # 서버 코드를 GitHub 최신으로 강제 동기화 (충돌 방지)
+            git fetch origin
+            git reset --hard origin/main
+            # auth.json 복원
+            cp ../auth_backup.json auth.json 2>/dev/null || true
           fi
 
           # 1.5 Docker 설치 확인 및 자동 설치 (최초 1회용)
