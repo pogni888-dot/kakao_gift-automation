@@ -141,7 +141,7 @@ test('카카오 로그인 테스트', async ({ page, waitForInput, waitForClick 
             await page.waitForTimeout(3000);
         }
 
-        // 6. 최종 로그인 성공 확인
+        // 6. 최종 로그인 성공
         try {
             await expect(page.locator('.btn_logout')).toBeVisible({ timeout: 10000 });
             console.log('✅ 로그인 성공 확인 완료! (로그아웃 버튼 존재)');
