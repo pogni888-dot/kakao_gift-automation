@@ -49,6 +49,20 @@ function App() {
     setUserInput('');
   };
 
+  const [isClickMode, setIsClickMode] = useState(false);
+
+  const handleImageClick = (e) => {
+    if (!isClickMode) return;
+    const rect = e.target.getBoundingClientRect();
+    // 비율 계산 (0.0 ~ 1.0)
+    const xRatio = (e.clientX - rect.left) / rect.width;
+    const yRatio = (e.clientY - rect.top) / rect.height;
+
+    socket.emit('send-click', { x: xRatio, y: yRatio });
+    setLogs(prev => [...prev, `🖱️ [Click Sent] Relative: (${xRatio.toFixed(3)}, ${yRatio.toFixed(3)})`]);
+    setIsClickMode(false);
+  };
+
   useEffect(() => {
     fetch(`${API_BASE}/api/tests`)
       .then(res => res.json())
@@ -237,8 +251,31 @@ function App() {
               </div>
               <span className="stream-title">Real-time Execution</span>
               {activeTest && <span className="stream-filename">({activeTest})</span>}
+              <button
+                onClick={() => setIsClickMode(!isClickMode)}
+                style={{
+                  marginLeft: 'auto',
+                  padding: '4px 10px',
+                  fontSize: '0.85rem',
+                  borderRadius: '4px',
+                  border: '1px solid rgba(255,255,255,0.2)',
+                  background: isClickMode ? '#ef4444' : 'rgba(255,255,255,0.1)',
+                  color: 'white',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  transition: 'all 0.2s'
+                }}
+              >
+                {isClickMode ? '🎯 Active' : '👆 Click Mode'}
+              </button>
             </div>
-            <img src={streamImage} alt="Live Stream" className="live-image" />
+            <img
+              src={streamImage}
+              alt="Live Stream"
+              className="live-image"
+              onClick={handleImageClick}
+              style={{ cursor: isClickMode ? 'crosshair' : 'default' }}
+            />
           </div>
         </div>
       )}

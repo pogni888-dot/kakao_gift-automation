@@ -153,6 +153,18 @@ io.on('connection', (socket) => {
         socket.broadcast.emit('stream-frame', data);
     });
 
+    // [New] Dashboard Input Relay (For Captcha)
+    socket.on('send-input', (text) => {
+        console.log(`Relaying user input: ${text}`);
+        socket.broadcast.emit('user-input', text);
+    });
+
+    // [New] Dashboard Click Relay (For Image Click)
+    socket.on('send-click', (data) => {
+        console.log(`Relaying user click: ${JSON.stringify(data)}`);
+        socket.broadcast.emit('user-click', data);
+    });
+
     socket.on('stop-test', () => {
         if (activeProcess) {
             console.log('Stopping test process:', activeProcess.pid);

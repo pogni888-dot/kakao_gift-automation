@@ -5,6 +5,7 @@ import { io, Socket } from 'socket.io-client';
 type TestFixtures = {
     socket: Socket;
     waitForInput: (timeout?: number) => Promise<string | null>;
+    waitForClick: (timeout?: number) => Promise<{ x: number, y: number } | null>;
 };
 
 /**
@@ -13,6 +14,7 @@ type TestFixtures = {
  * - CDP(Chrome DevTools Protocol)를 사용하여 브라우저 화면을 직접 스트리밍함
  * - 3001 포트로 전송 → 대시보드가 이를 받아 실시간 재생
  * - waitForInput: 대시보드에서 보낸 사용자 입력을 기다리는 헬퍼 함수 제공
+ * - waitForClick: 대시보드에서 보낸 사용자 클릭 좌표를 기다리는 헬퍼 함수 제공
  */
 export const test = base.extend<TestFixtures>({
     socket: [async ({ page }, use) => {
@@ -60,7 +62,7 @@ export const test = base.extend<TestFixtures>({
 
         socket.on('user-input', handler);
 
-        const waitFunc = async (timeout = 600000) => { // 기본 10분 (사람이 입력해야 하므로 넉넉하게)
+        const waitFunc = async (timeout = 600000) => { // 기본 10분
             console.log(`💬 [Input System] 사용자 입력을 기다립니다... (대시보드 하단 입력창 사용)`);
             const start = Date.now();
             while (Date.now() - start < timeout) {
@@ -78,6 +80,37 @@ export const test = base.extend<TestFixtures>({
         await use(waitFunc);
 
         socket.off('user-input', handler);
+    },
+
+    // 사용자 클릭 대기 함수 (Fixture)
+    waitForClick: async ({ socket }, use) => {
+        const clickQueue: { x: number, y: number }[] = [];
+
+        const handler = (data: { x: number, y: number }) => {
+            console.log(`[Click System] Received: (${data.x}, ${data.y})`);
+            clickQueue.push(data);
+        };
+
+        socket.on('user-click', handler);
+
+        const waitFunc = async (timeout = 600000): Promise<{ x: number, y: number } | null> => {
+            console.log(`🖱️ [Click System] 사용자 클릭을 기다립니다... (대시보드 라이브 화면 이미지 클릭)`);
+            const start = Date.now();
+            while (Date.now() - start < timeout) {
+                if (clickQueue.length > 0) {
+                    const chunk = clickQueue.shift();
+                    console.log(`✅ [Click System] 클릭 좌표 수신: (${chunk!.x.toFixed(4)}, ${chunk!.y.toFixed(4)})`);
+                    return chunk || null;
+                }
+                await new Promise(r => setTimeout(r, 500));
+            }
+            console.log('❌ [Click System] 클릭 대기 타임아웃');
+            return null;
+        };
+
+        await use(waitFunc);
+
+        socket.off('user-click', handler);
     }
 });
 

@@ -4,7 +4,7 @@ import { test, expect } from './fixtures';
 const KAKAO_ID = process.env.KAKAO_ID;
 const KAKAO_PW = process.env.KAKAO_PW;
 
-test('카카오 로그인 테스트', async ({ page, waitForInput }) => {
+test('카카오 로그인 테스트', async ({ page, waitForInput, waitForClick }) => {
     test.setTimeout(120000); // 2분 (2차 인증 시간 고려)
 
     console.log('🚀 카카오 로그인 테스트 시작');
