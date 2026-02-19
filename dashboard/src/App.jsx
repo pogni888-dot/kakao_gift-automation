@@ -40,6 +40,15 @@ function App() {
       .catch(err => console.error("Failed to fetch auth status", err));
   };
 
+  // 사용자 입력 (보안문자 등) 처리
+  const [userInput, setUserInput] = useState('');
+  const sendUserInput = () => {
+    if (!userInput.trim()) return;
+    socket.emit('send-input', userInput);
+    setLogs(prev => [...prev, `\n🗣️ [User Input Sent]: ${userInput}\n`]);
+    setUserInput('');
+  };
+
   useEffect(() => {
     fetch(`${API_BASE}/api/tests`)
       .then(res => res.json())
@@ -285,6 +294,28 @@ function App() {
             );
           })}
           {tests.length === 0 && <div className="empty-state">No tests found in /tests folder.</div>}
+        </div>
+
+        {/* 사용자 입력 전송 컨트롤 (Test Interaction) */}
+        <div className="input-control-section fade-in">
+          <div className="input-wrapper">
+            <input
+              type="text"
+              value={userInput}
+              onChange={(e) => setUserInput(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && sendUserInput()}
+              placeholder="💬 테스트 중 보안문자 등이 나오면 여기에 입력하고 엔터를 누르세요..."
+              disabled={!activeTest}
+              className="user-input-field"
+            />
+            <button
+              className="btn btn-send"
+              onClick={sendUserInput}
+              disabled={!activeTest || !userInput.trim()}
+            >
+              Send Input
+            </button>
+          </div>
         </div>
 
         <div className="terminal-section">

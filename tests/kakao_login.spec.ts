@@ -4,7 +4,7 @@ import { test, expect } from './fixtures';
 const KAKAO_ID = process.env.KAKAO_ID;
 const KAKAO_PW = process.env.KAKAO_PW;
 
-test('카카오 로그인 테스트', async ({ page }) => {
+test('카카오 로그인 테스트', async ({ page, waitForInput }) => {
     test.setTimeout(120000); // 2분 (2차 인증 시간 고려)
 
     console.log('🚀 카카오 로그인 테스트 시작');
@@ -47,6 +47,32 @@ test('카카오 로그인 테스트', async ({ page }) => {
             // 4. 로그인 버튼 클릭
             await page.click('button.btn_g.highlight.submit');
             console.log('🔄 로그인 요청 전송됨. 결과 대기 중...');
+
+            // [보안문자 대응] 입력 필드가 보이면 사용자 입력 대기 (2분)
+            try {
+                const captchaInput = page.locator('input[name="captcha"], #captcha, .inp_captcha, input[placeholder*="보안문자"]');
+                // 보안문자가 떴는지 확인 (2초 정도만 확인)
+                if (await captchaInput.isVisible({ timeout: 2000 })) {
+                    console.log('🚨 보안문자가 감지되었습니다!');
+                    console.log('👉 대시보드 하단 입력창에 보안문자를 입력해주세요. (최대 2분 대기)');
+
+                    const userCaptcha = await waitForInput(120000); // 2분 대기
+
+                    if (userCaptcha) {
+                        console.log(`✅ 보안문자 입력 수신: "${userCaptcha}"`);
+                        await captchaInput.fill(userCaptcha);
+                        await page.waitForTimeout(500);
+
+                        console.log('🔄 보안문자 입력 후 재로그인 시도...');
+                        await page.click('button.btn_g.highlight.submit');
+                        await page.waitForTimeout(3000);
+                    } else {
+                        console.error('❌ 보안문자 입력 시간 초과');
+                    }
+                }
+            } catch (e) {
+                // 보안문자 입력창이 없으면 그냥 넘어감
+            }
 
             // [검증] 로그인 실패 메시지 감지
             try {
