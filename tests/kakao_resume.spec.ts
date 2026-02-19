@@ -111,7 +111,7 @@ test('카카오 로그인 테스트', async ({ page }) => {
         await page.waitForTimeout(1000);
     } catch (e) {
         const friendList_2 = page.locator('ul.list_friends > li').first();
-        await friendList_2.locator('label.lab_friend').click();
+        await friendList_2.locator('div.group_chk_friend').click();
         await page.waitForTimeout(1000);
     }
     await page.waitForTimeout(1000);
