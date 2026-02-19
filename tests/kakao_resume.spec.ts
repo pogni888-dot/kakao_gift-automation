@@ -110,7 +110,7 @@ test('카카오 로그인 테스트', async ({ page }) => {
         await friendList.locator('label.lab_pick > span.wrap_thumb').click();
         await page.waitForTimeout(1000);
     } catch (e) {
-        const friendList_2 = page.locator('div.group_chk_friend').first();
+        const friendList_2 = page.locator('ul.list_friends > div.group_chk_friend').first();
         await friendList_2.locator('label.lab_friend > span.ico_base').click();
         await page.waitForTimeout(1000);
     }
