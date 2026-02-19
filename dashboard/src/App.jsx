@@ -174,6 +174,9 @@ function App() {
             <p className="auth-modal-desc">
               카카오 계정 정보를 입력하면 해당 정보로 로그인 세션을 생성합니다.
             </p>
+            <p style={{ color: '#ef4444', fontSize: '0.9rem', marginBottom: '16px', fontWeight: 'bold' }}>
+              ⚠ 카카오 계정 상태에 따라 2차 인증 수동 해제 필요
+            </p>
             <div className="auth-form">
               <div className="auth-field">
                 <label htmlFor="auth-id">카카오 아이디 (이메일)</label>
