@@ -283,18 +283,26 @@ function App() {
       <main className="main-content">
         <div className="test-grid">
           {tests.map(test => {
-            const isAuthTest = test === 'generate_auth.spec.ts';
-            // generate_auth.spec.ts는 만료되었을 때 강조 (빨간 테두리)
+            const isAuthTest = test.includes('generate') || test === '초.ts';
             const isUrgent = isAuthTest && isSessionExpired;
+
+            // [New] Generate 파일 선행 실행이 필요한 테스트 파일들
+            const isDependentTest = /resume|wishlist|giftbox/i.test(test);
+            const showTooltip = testDescriptions[test] || isAuthTest || isDependentTest;
 
             return (
               <div key={test} className={`test-card ${activeTest === test ? 'running' : ''} ${isUrgent ? 'urgent' : ''}`}>
-                {testDescriptions[test] && (
+                {showTooltip && (
                   <div className="tooltip">
                     {testDescriptions[test]}
                     {isAuthTest && (
                       <div style={{ color: '#ef4444', marginTop: '6px', fontSize: '0.8rem', paddingTop: '4px', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
                         🔍 세션 생성/갱신용
+                      </div>
+                    )}
+                    {isDependentTest && (
+                      <div style={{ color: '#ef4444', marginTop: '6px', fontSize: '0.8rem', paddingTop: '4px', borderTop: '1px solid rgba(255,255,255,0.1)', fontWeight: 'bold' }}>
+                        ⚠ generate 파일 실행 후 로그인 세션 생성 필요
                       </div>
                     )}
                     <div className="tooltip-arrow"></div>
