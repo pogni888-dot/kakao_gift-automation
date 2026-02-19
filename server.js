@@ -82,7 +82,7 @@ let activeProcess = null;
 io.on('connection', (socket) => {
     console.log('Client connected:', socket.id);
 
-    socket.on('run-test', (filename) => {
+    socket.on('run-test', (filename, credentials) => {
         if (activeProcess) {
             socket.emit('test-output', 'A test is already running. Please wait.\n');
             return;
@@ -103,12 +103,21 @@ io.on('connection', (socket) => {
         const fullCommand = `npx playwright test "${testPath.replace(/\\/g, '\\\\')}" --project=chromium`;
         console.log(`Executing: ${fullCommand}`);
 
+        // 환경변수 설정: generate_auth.spec.ts 실행 시 자격 증명 전달
+        const env = { ...process.env };
+        if (credentials && credentials.id && credentials.pw) {
+            env.KAKAO_ID = credentials.id;
+            env.KAKAO_PW = credentials.pw;
+            console.log(`Using custom credentials for: ${credentials.id}`);
+        }
+
         // Spawn process using the full command string for better control
         // detached: true → 프로세스 그룹 생성 (Stop 시 자식 프로세스까지 한번에 종료)
         activeProcess = spawn(fullCommand, {
             cwd: __dirname,
             shell: true,
-            detached: true
+            detached: true,
+            env: env
         });
 
         activeProcess.stdout.on('data', (data) => {

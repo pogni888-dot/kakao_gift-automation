@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from 'react';
 import { io } from 'socket.io-client';
-import { Play, Square, Terminal, CheckCircle, XCircle, Activity, Lock } from 'lucide-react';
+import { Play, Square, Terminal, CheckCircle, XCircle, Activity, KeyRound } from 'lucide-react';
 import './App.css';
 
 const isProduction = import.meta.env.PROD;
@@ -27,6 +27,9 @@ function App() {
   const [isConnected, setIsConnected] = useState(false);
   const terminalEndRef = useRef(null);
   const [authLastRun, setAuthLastRun] = useState(0);
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [authId, setAuthId] = useState('');
+  const [authPw, setAuthPw] = useState('');
 
   const fetchAuthStatus = () => {
     fetch(`${API_BASE}/api/auth-status`)
@@ -81,17 +84,55 @@ function App() {
     terminalEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [logs]);
 
+  // 1분마다 now 업데이트 (UI 갱신용)
+  const [now, setNow] = useState(Date.now());
+  useEffect(() => {
+    const interval = setInterval(() => setNow(Date.now()), 60000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // 세션 만료 여부: authLastRun이 0(없음)이거나 24시간 지남
+  const isSessionExpired = !authLastRun || (now - authLastRun > 24 * 60 * 60 * 1000);
+
   const runTest = (filename) => {
     if (activeTest) return;
 
-    if (filename === 'generate_auth.spec.ts' && (Date.now() - authLastRun < 24 * 60 * 60 * 1000)) {
-      alert("⚠️ 이 테스트는 최근 24시간 내에 실행된 기록이 있어 잠겨있습니다.");
+    // generate_auth.spec.ts → 로그인 모달 표시
+    if (filename === 'generate_auth.spec.ts') {
+      setShowAuthModal(true);
       return;
+    }
+
+    // 만료되었는데 다른 일반 테스트를 실행하려 할 때 경고
+    if (isSessionExpired) {
+      const msg = "⚠️ 로그인 세션이 만료되었습니다 (혹은 생성되지 않았습니다).\n\n이 상태로 실행하면 테스트가 실패할 수 있습니다.\n먼저 'generate_auth.spec.ts'를 실행하는 것이 좋습니다.\n\n그래도 실행하시겠습니까?";
+      if (!confirm(msg)) {
+        return;
+      }
     }
 
     setLogs([]); // Clear logs on new run
     setVideoUrl(null);
     socket.emit('run-test', filename);
+  };
+
+  // 로그인 모달에서 실행 버튼 클릭
+  const handleAuthSubmit = () => {
+    const id = authId.trim();
+    const pw = authPw.trim();
+
+    if (!id || !pw) {
+      alert('아이디와 비밀번호를 모두 입력해주세요.');
+      return;
+    }
+
+    setShowAuthModal(false);
+    setLogs([]);
+    setVideoUrl(null);
+    socket.emit('run-test', 'generate_auth.spec.ts', { id, pw });
+    // 입력 필드 초기화
+    setAuthId('');
+    setAuthPw('');
   };
 
   const stopTest = () => {
@@ -110,6 +151,60 @@ function App() {
           {isConnected ? 'System Ready' : 'Disconnected'}
         </div>
       </header>
+
+      {isSessionExpired && (
+        <div className="session-warning-banner fade-in">
+          ⚠️ <strong>로그인 세션이 만료되었습니다.</strong> 원활한 테스트를 위해 <code>generate_auth.spec.ts</code>를 먼저 실행해주세요.
+        </div>
+      )}
+
+      {/* 로그인 자격 증명 입력 모달 */}
+      {showAuthModal && (
+        <div className="modal-overlay fade-in" onClick={() => setShowAuthModal(false)}>
+          <div className="auth-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="auth-modal-header">
+              <KeyRound size={22} />
+              <h2>카카오 로그인 정보 입력</h2>
+            </div>
+            <p className="auth-modal-desc">
+              카카오 계정 정보를 입력하면 해당 정보로 로그인 세션을 생성합니다.
+            </p>
+            <div className="auth-form">
+              <div className="auth-field">
+                <label htmlFor="auth-id">카카오 아이디 (이메일)</label>
+                <input
+                  id="auth-id"
+                  type="email"
+                  placeholder="example@email.com"
+                  value={authId}
+                  onChange={(e) => setAuthId(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && document.getElementById('auth-pw').focus()}
+                  autoFocus
+                />
+              </div>
+              <div className="auth-field">
+                <label htmlFor="auth-pw">비밀번호</label>
+                <input
+                  id="auth-pw"
+                  type="password"
+                  placeholder="비밀번호 입력"
+                  value={authPw}
+                  onChange={(e) => setAuthPw(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleAuthSubmit()}
+                />
+              </div>
+              <div className="auth-actions">
+                <button className="btn auth-cancel-btn" onClick={() => setShowAuthModal(false)}>
+                  취소
+                </button>
+                <button className="btn btn-run auth-submit-btn" onClick={handleAuthSubmit}>
+                  <Play size={16} /> 로그인 세션 생성
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {videoUrl && (
         <div className="video-player-section fade-in">
@@ -135,16 +230,17 @@ function App() {
         <div className="test-grid">
           {tests.map(test => {
             const isAuthTest = test === 'generate_auth.spec.ts';
-            const isLocked = isAuthTest && (Date.now() - authLastRun < 24 * 60 * 60 * 1000);
+            // generate_auth.spec.ts는 만료되었을 때 강조 (빨간 테두리)
+            const isUrgent = isAuthTest && isSessionExpired;
 
             return (
-              <div key={test} className={`test-card ${activeTest === test ? 'running' : ''}`}>
+              <div key={test} className={`test-card ${activeTest === test ? 'running' : ''} ${isUrgent ? 'urgent' : ''}`}>
                 {testDescriptions[test] && (
                   <div className="tooltip">
                     {testDescriptions[test]}
-                    {isLocked && (
+                    {isAuthTest && (
                       <div style={{ color: '#ef4444', marginTop: '6px', fontSize: '0.8rem', paddingTop: '4px', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
-                        🔒 최근 24시간 내 실행됨
+                        🔍 세션 생성/갱신용
                       </div>
                     )}
                     <div className="tooltip-arrow"></div>
@@ -162,12 +258,11 @@ function App() {
                   ) : (
                     <button
                       onClick={() => runTest(test)}
-                      className={`btn ${isLocked ? 'btn-locked' : 'btn-run'}`}
-                      disabled={activeTest !== null || isLocked}
-                      style={isLocked ? { background: '#334155', cursor: 'not-allowed', opacity: 0.7, boxShadow: 'none' } : {}}
+                      className="btn btn-run"
+                      disabled={activeTest !== null}
                     >
-                      {isLocked ? <Lock size={16} /> : <Play size={16} />}
-                      {isLocked ? 'Locked' : 'Run Test'}
+                      <Play size={16} />
+                      Run Test
                     </button>
                   )}
                 </div>
