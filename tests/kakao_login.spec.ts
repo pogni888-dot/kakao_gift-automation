@@ -71,18 +71,58 @@ test('카카오 로그인 테스트', async ({ page }) => {
             console.log(`⚠️ 입력 중 문제 발생: ${errMsg}`);
         }
 
-        // 5. 로그인 완료 대기 (gift.kakao.com으로 리다이렉트 될 때까지)
-        // 2차 인증이 필요할 수 있으므로 넉넉히 대기
-        console.log('⏳ 로그인 처리 대기 중...');
+        // 5. 로그인 완료 및 2차 인증 대응 (최대 4분 대기)
+        console.log('⏳ 로그인 처리 대기 중... (2차 인증 / continue 버튼 자동 감지)');
 
+        const maxWait = 240000; // 4분
+        const startTime = Date.now();
+        let isLoggedIn = false;
+
+        while (Date.now() - startTime < maxWait) {
+            // A. 선물하기 홈으로 돌아왔는지 확인
+            if (page.url().includes('gift.kakao.com')) {
+                console.log('✅ 카카오 선물하기 페이지로 돌아왔습니다!');
+                isLoggedIn = true;
+                await page.waitForTimeout(2000);
+                break;
+            }
+
+            // B. 'continue' 버튼이 보이면 클릭 (2차 인증 후)
+            try {
+                // 다양한 형태의 continue 버튼 탐색
+                // case-insensitive 'continue' check
+                const continueBtn = page.locator('button, a, input[type="button"], input[type="submit"]')
+                    .filter({ hasText: /continue/i }).first();
+
+                if (await continueBtn.isVisible({ timeout: 500 })) {
+                    console.log('🔘 "continue" 버튼 발견! 클릭합니다...');
+                    await continueBtn.click();
+                    await page.waitForTimeout(3000);
+                    continue; // 클릭했으면 루프 처음으로
+                }
+            } catch (e) {
+                // 버튼 못 찾으면 무시
+            }
+
+            // 3초 대기 후 재시도
+            await page.waitForTimeout(3000);
+        }
+
+        // C. 시간이 지났는데도 여전히 로그인 페이지라면 강제 이동 시도
+        if (!isLoggedIn) {
+            console.log('📍 리다이렉트가 늦어지고 있습니다. 홈으로 직접 이동을 시도합니다...');
+            await page.goto('https://gift.kakao.com/home', { waitUntil: 'domcontentloaded' });
+            await page.waitForTimeout(3000);
+        }
+
+        // 6. 최종 로그인 성공 확인
         try {
-            // "로그아웃" 버튼이 나타나면 로그인 성공으로 간주
-            await expect(page.locator('.btn_logout')).toBeVisible({ timeout: 30000 });
-            console.log('✅ 로그인 성공! (로그아웃 버튼 확인됨)');
+            await expect(page.locator('.btn_logout')).toBeVisible({ timeout: 10000 });
+            console.log('✅ 로그인 성공 확인 완료! (로그아웃 버튼 존재)');
         } catch (e) {
-            console.log('⚠️ 로그인 완료 확인 실패 (타임아웃). 2차 인증이 필요하거나 페이지 로딩이 느릴 수 있습니다.');
-            // 현재 URL 로깅
-            console.log(`Current URL: ${page.url()}`);
+            console.error('❌ 로그인 성공 확인 실패. 2차 인증을 완료하지 못했거나, 계정 잠김 상태일 수 있습니다.');
+            console.error(`Current URL: ${page.url()}`);
+            throw new Error('로그인 실패 (타임아웃)');
         }
     }
 });
