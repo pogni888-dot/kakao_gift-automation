@@ -107,13 +107,11 @@ test('카카오 로그인 테스트', async ({ page }) => {
     // 7. 친구 설정 체크박스 클릭
     try {
         const friendList = page.locator('ul.list_recommfriend > li.ng-star-inserted').first();
-        console.log("친구이름:" + await friendList.textContent());
         await friendList.locator('label.lab_pick > span.wrap_thumb').click();
         await page.waitForTimeout(1000);
     } catch (e) {
-        const friendList_2 = page.locator('div.group_chk_friend').nth(0);
-        console.log("친구이름:" + await friendList_2.textContent());
-        await friendList_2.locator('label.lab_friend').click();
+        const friendList_2 = page.locator('div.group_chk_friend').first();
+        await friendList_2.locator('label.lab_friend > span.ico_base').click();
         await page.waitForTimeout(1000);
     }
     await page.waitForTimeout(1000);
