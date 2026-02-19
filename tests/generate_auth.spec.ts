@@ -55,8 +55,30 @@ test('카카오 로그인 세션 생성 및 저장', async ({ page }) => {
             // 5. 로그인 버튼 클릭
             await page.click('button.btn_g.highlight.submit');
             console.log('🔄 로그인 요청 전송됨. 결과 대기 중...');
+
+            // [검증] 로그인 실패 메시지 감지
+            try {
+                // 에러 메시지가 뜰 때까지 잠시 대기 (최대 3초)
+                const errorMsgLocator = page.locator('.txt_message, .error_message, .desc_login.fail');
+                await errorMsgLocator.waitFor({ state: 'visible', timeout: 3000 });
+
+                const errorText = await errorMsgLocator.innerText();
+                if (errorText) {
+                    throw new Error(`❌ 로그인 실패: ${errorText} (아이디/비밀번호를 확인해주세요)`);
+                }
+            } catch (e) {
+                // 에러 메시지가 발견되면 throw
+                const errMsg = (e as Error).message;
+                if (errMsg.includes('로그인 실패')) throw e;
+                // 발견되지 않으면(timeout) 정상 진행
+            }
+
         } catch (e) {
-            console.log('⚠️ 자동 입력 실패. 이미 입력되었거나 폼을 찾을 수 없습니다.');
+            const errMsg = (e as Error).message;
+            console.log(`⚠️ 로그인 시도 중 에러: ${errMsg}`);
+            if (errMsg.includes('로그인 실패')) {
+                throw e; // 치명적인 에러는 상위로 전파하여 테스트 실패 처리
+            }
         }
 
         // 6. 로그인 완료 대기 (2차 인증 + continue 버튼 처리)
