@@ -26,6 +26,7 @@ function App() {
   const [streamImage, setStreamImage] = useState(null);
   const [isConnected, setIsConnected] = useState(false);
   const terminalEndRef = useRef(null);
+  const terminalWindowRef = useRef(null);
   const [authLastRun, setAuthLastRun] = useState(0);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [authId, setAuthId] = useState('');
@@ -81,9 +82,11 @@ function App() {
     };
   }, []);
 
-  // Auto-scroll terminal
+  // Auto-scroll terminal (log only, prevent window scrolling)
   useEffect(() => {
-    terminalEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (terminalWindowRef.current) {
+      terminalWindowRef.current.scrollTop = terminalWindowRef.current.scrollHeight;
+    }
   }, [logs]);
 
   // 1분마다 now 업데이트 (UI 갱신용)
@@ -282,11 +285,10 @@ function App() {
             <span>Console Output</span>
             <button className="clear-btn" onClick={() => setLogs([])}>Clear</button>
           </div>
-          <div className="terminal-window">
+          <div className="terminal-window" ref={terminalWindowRef}>
             {logs.map((log, i) => (
               <div key={i} className="log-line">{log}</div>
             ))}
-            <div ref={terminalEndRef} />
           </div>
         </div>
       </main>
