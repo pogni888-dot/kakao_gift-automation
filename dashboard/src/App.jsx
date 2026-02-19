@@ -31,6 +31,7 @@ function App() {
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [authId, setAuthId] = useState('');
   const [authPw, setAuthPw] = useState('');
+  const [pendingTest, setPendingTest] = useState(null);
 
   const fetchAuthStatus = () => {
     fetch(`${API_BASE}/api/auth-status`)
@@ -102,8 +103,9 @@ function App() {
   const runTest = (filename) => {
     if (activeTest) return;
 
-    // generate_auth.spec.ts → 로그인 모달 표시
-    if (filename === 'generate_auth.spec.ts') {
+    // generate_auth.spec.ts이거나 kakao_login.spec.ts일 때 로그인 모달 표시
+    if (filename === 'generate_auth.spec.ts' || filename === 'kakao_login.spec.ts') {
+      setPendingTest(filename);
       setShowAuthModal(true);
       return;
     }
@@ -134,7 +136,10 @@ function App() {
     setShowAuthModal(false);
     setLogs([]);
     setStreamImage(null);
-    socket.emit('run-test', 'generate_auth.spec.ts', { id, pw });
+
+    const targetFile = pendingTest || 'generate_auth.spec.ts';
+    socket.emit('run-test', targetFile, { id, pw });
+    setPendingTest(null);
     // 입력 필드 초기화
     setAuthId('');
     setAuthPw('');
