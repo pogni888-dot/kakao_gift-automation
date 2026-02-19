@@ -37,6 +37,9 @@ scp -i "$KeyFile" -o StrictHostKeyChecking=no -r "dashboard/dist" "${User}@${Ser
 # Copy server.js
 scp -i "$KeyFile" -o StrictHostKeyChecking=no "server.js" "${User}@${ServerIP}:${RemoteTempDir}/server.js"
 
+# Copy package.json
+scp -i "$KeyFile" -o StrictHostKeyChecking=no "package.json" "${User}@${ServerIP}:${RemoteTempDir}/package.json"
+
 # 3. Apply to Docker Container via SSH
 Write-Host "Applying updates to Docker container ($ContainerName)..."
 $UpdateCommands = (@"
@@ -46,6 +49,7 @@ $UpdateCommands = (@"
     
     # Update other files inside container
     sudo docker cp ${RemoteTempDir}/playwright.config.ts ${ContainerName}:/app/playwright.config.ts
+    sudo docker cp ${RemoteTempDir}/package.json ${ContainerName}:/app/package.json
     sudo docker cp ${RemoteTempDir}/tests ${ContainerName}:/app/
     
     echo "Updating dashboard build..."
@@ -56,6 +60,9 @@ $UpdateCommands = (@"
     sudo docker exec ${ContainerName} chmod -R 755 /app/dashboard/dist
 
     sudo docker cp ${RemoteTempDir}/server.js ${ContainerName}:/app/server.js
+
+    echo "Running npm install inside container..."
+    sudo docker exec ${ContainerName} npm install
 
     echo "Restarting container..."
     sudo docker restart ${ContainerName}

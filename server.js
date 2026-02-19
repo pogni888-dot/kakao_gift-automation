@@ -132,57 +132,10 @@ io.on('connection', (socket) => {
         activeProcess.on('close', (code) => {
             console.log(`Test finished with code ${code}`);
 
-            // Wait a bit to ensure video file is flushed to disk
-            setTimeout(() => {
-                // Helper to recursively find the latest .webm file
-                const findLatestWebm = (dir) => {
-                    let latestFile = null;
-                    let latestMtime = 0;
-
-                    const search = (currentDir) => {
-                        try {
-                            if (!fs.existsSync(currentDir)) return;
-                            const entries = fs.readdirSync(currentDir, { withFileTypes: true });
-                            for (const entry of entries) {
-                                const fullPath = path.join(currentDir, entry.name);
-                                if (entry.isDirectory()) {
-                                    search(fullPath);
-                                } else if (entry.isFile() && entry.name.endsWith('.webm')) {
-                                    const stats = fs.statSync(fullPath);
-                                    if (stats.mtimeMs > latestMtime) {
-                                        latestMtime = stats.mtimeMs;
-                                        latestFile = fullPath;
-                                    }
-                                }
-                            }
-                        } catch (e) {
-                            console.error(`Error reading dir ${currentDir}:`, e);
-                        }
-                    };
-
-                    search(dir);
-                    return latestFile;
-                };
-
-                const latestVideo = findLatestWebm(testResultsDir);
-                let videoUrl = null;
-
-                if (latestVideo) {
-                    // Convert absolute path to relative URL path
-                    // testResultsDir is absolute, e.g. /app/test-results
-                    // latestVideo is absolute, e.g. /app/test-results/sub/video.webm
-                    // relative: sub/video.webm
-                    const relativePath = path.relative(testResultsDir, latestVideo);
-                    // URL: /test-results/sub/video.webm
-                    videoUrl = `/test-results/${relativePath.replace(/\\/g, '/')}`;
-                    console.log('Latest video found:', videoUrl);
-                } else {
-                    console.log('No video file found in test-results.');
-                }
-
-                socket.emit('test-complete', { code, video: videoUrl });
-                activeProcess = null;
-            }, 5000);
+            // 비디오 파일 찾기 로직 제거 (실시간 스트리밍으로 대체)
+            // 테스트 종료만 알림
+            activeProcess = null;
+            io.emit('test-complete', { code, video: null }); // video: null 전송
         });
 
         activeProcess.on('error', (err) => {
@@ -190,6 +143,14 @@ io.on('connection', (socket) => {
             socket.emit('test-output', `Error: ${err.message}\n`);
             activeProcess = null;
         });
+    });
+
+    // [New] Real-time Streaming Relay
+    // 테스트 스크립트(Client)가 보내는 화면 데이터를 받아서 대시보드(All Clients)로 브로드캐스트
+    socket.on('stream-data', (data) => {
+        // 자신(테스트 스크립트)을 제외하고, 대시보드에게만 전송하면 됨
+        // 하지만 socket.broadcast가 편함
+        socket.broadcast.emit('stream-frame', data);
     });
 
     socket.on('stop-test', () => {

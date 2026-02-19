@@ -23,7 +23,7 @@ function App() {
   const [tests, setTests] = useState([]);
   const [activeTest, setActiveTest] = useState(null);
   const [logs, setLogs] = useState([]);
-  const [videoUrl, setVideoUrl] = useState(null);
+  const [streamImage, setStreamImage] = useState(null);
   const [isConnected, setIsConnected] = useState(false);
   const terminalEndRef = useRef(null);
   const [authLastRun, setAuthLastRun] = useState(0);
@@ -58,16 +58,18 @@ function App() {
       setLogs(prev => [...prev, data]);
     });
 
-    socket.on('test-complete', ({ code, video }) => {
+    // 실시간 스트리밍 데이터 수신
+    socket.on('stream-frame', (data) => {
+      setStreamImage(`data:image/jpeg;base64,${data}`);
+    });
+
+    socket.on('test-complete', ({ code }) => {
       setActiveTest(null);
       setLogs(prev => [...prev, `\n--- TEST COMPLETED WITH EXIT CODE: ${code} ---\n`]);
-      if (video) {
-        setLogs(prev => [...prev, `🎥 Video found: ${video}\n`]);
-        setVideoUrl(video);
-      } else {
-        setLogs(prev => [...prev, `ℹ️ No video recording found.\n`]);
-      }
       fetchAuthStatus();
+
+      // 3초 후 스트리밍 화면 닫기 (결과 확인용 대기)
+      setTimeout(() => setStreamImage(null), 5000);
     });
 
     return () => {
@@ -112,7 +114,7 @@ function App() {
     }
 
     setLogs([]); // Clear logs on new run
-    setVideoUrl(null);
+    setStreamImage(null);
     socket.emit('run-test', filename);
   };
 
@@ -128,7 +130,7 @@ function App() {
 
     setShowAuthModal(false);
     setLogs([]);
-    setVideoUrl(null);
+    setStreamImage(null);
     socket.emit('run-test', 'generate_auth.spec.ts', { id, pw });
     // 입력 필드 초기화
     setAuthId('');
@@ -206,22 +208,17 @@ function App() {
         </div>
       )}
 
-      {videoUrl && (
-        <div className="video-player-section fade-in">
-          <div className="video-wrapper">
-            <div className="video-header">
-              <span>Test Execution Replay</span>
-              <button className="close-video-btn" onClick={() => setVideoUrl(null)}><XCircle size={20} /></button>
+      {streamImage && (
+        <div className="live-stream-section fade-in">
+          <div className="stream-wrapper">
+            <div className="stream-header">
+              <div className="live-badge">
+                <span className="blink-dot"></span> LIVE
+              </div>
+              <span className="stream-title">Real-time Execution</span>
+              {activeTest && <span className="stream-filename">({activeTest})</span>}
             </div>
-            <video
-              src={`${API_BASE}${videoUrl}`}
-              controls
-              autoPlay
-              muted
-              playsInline
-              className="test-video"
-              onEnded={() => setVideoUrl(null)}
-            />
+            <img src={streamImage} alt="Live Stream" className="live-image" />
           </div>
         </div>
       )}

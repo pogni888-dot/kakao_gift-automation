@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures';
 
 test('카카오 선물하기 쥬시쿨 검색 테스트', async ({ page }) => {
 
