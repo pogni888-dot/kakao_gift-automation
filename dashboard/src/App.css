@@ -308,35 +308,28 @@ h3 {
 }
 
 /* Loading Bar Animation */
-.loading-bar {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  height: 4px;
-  width: 100%;
-  background: rgba(255, 255, 255, 0.1);
+/* Loading Bar Animation - REMOVED, REPLACED BY MINI LOADER */
+
+.mini-loader {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-right: 8px;
+  /* 버튼과의 간격 */
 }
 
-.bar-fill {
-  height: 100%;
-  width: 50%;
-  background: var(--accent-primary);
-  animation: loading 1.5s infinite ease-in-out;
+.spinner {
+  width: 20px;
+  height: 20px;
+  border: 3px solid rgba(59, 130, 246, 0.2);
+  border-top-color: var(--accent-primary);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
 }
 
-@keyframes loading {
-  0% {
-    transform: translateX(-100%);
-    width: 20%;
-  }
-
-  50% {
-    width: 60%;
-  }
-
-  100% {
-    transform: translateX(200%);
-    width: 20%;
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
   }
 }
 

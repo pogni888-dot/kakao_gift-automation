@@ -251,6 +251,12 @@ function App() {
                   <h3>{test}</h3>
                 </div>
                 <div className="card-actions">
+                  {activeTest === test && (
+                    <div className="mini-loader" title="Running...">
+                      <div className="spinner"></div>
+                    </div>
+                  )}
+
                   {activeTest === test ? (
                     <button onClick={stopTest} className="btn btn-stop">
                       <Square size={16} /> Stop
@@ -266,7 +272,7 @@ function App() {
                     </button>
                   )}
                 </div>
-                {activeTest === test && <div className="loading-bar"><div className="bar-fill"></div></div>}
+                {/* loading-bar 제거됨 */}
               </div>
             );
           })}
