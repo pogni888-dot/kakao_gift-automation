@@ -106,18 +106,21 @@ test('카카오 로그인 테스트', async ({ page }) => {
 
     // 7. 친구 설정 체크박스 클릭
     try {
+        // 추천 친구 목록이 있으면 첫 번째 클릭 (타임아웃 3초로 제한)
         const friendList = page.locator('ul.list_recommfriend > li.ng-star-inserted').first();
-        await friendList.locator('label.lab_pick > span.wrap_thumb').click();
+        await friendList.locator('label.lab_pick > span.wrap_thumb').click({ timeout: 3000 });
         await page.waitForTimeout(1000);
     } catch (e) {
-        const friendList_2 = page.locator('ul.list_friends > li').first();
-        await friendList_2.locator('label.lab_friend').click();
+        // 추천 친구가 없으면 → 일반 친구 목록에서 첫 번째 라벨 클릭
+        // (input.chk_friend는 숨겨져 있고 label.lab_friend의 span이 위를 덮고 있으므로 label을 클릭)
+        const firstFriendLabel = page.locator('ul.list_friends > li').first().locator('label.lab_friend');
+        await firstFriendLabel.click({ timeout: 5000 });
         await page.waitForTimeout(1000);
     }
     await page.waitForTimeout(1000);
 
     // 8. 친구 선택하기 실행
-    await page.locator('button.btn_confirm').click();
+    await page.getByRole('button', { name: '친구 선택하기' }).click();
     await page.waitForTimeout(1000);
 
     // 9. 주문서 진입 버튼 클릭
