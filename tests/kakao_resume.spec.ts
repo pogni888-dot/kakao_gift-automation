@@ -121,16 +121,13 @@ test('카카오 로그인 테스트', async ({ page }) => {
     }
     await page.waitForTimeout(1000);
 
-    try {
-        // 8. 친구 선택하기 실행
-        await page.getByRole('button', { name: '친구 선택하기' }).click({ timeout: 3000 });
-        await page.waitForTimeout(1000);
-        console.log("친구 선택하기 버튼이 없습니다.")
-    } catch (e) {
-        // 9. 주문서 진입 버튼 클릭
-        await page.locator('button.btn_g').nth(1).click();
-        await page.waitForTimeout(1000);
-    }
+    // 8. 친구 선택하기 실행
+    await page.locator('button.btn_confirm').click({ timeout: 3000 });
+    await page.waitForTimeout(1000);
+
+    // 9. 주문서 진입 버튼 클릭
+    await page.locator('button.btn_g').nth(1).click();
+    await page.waitForTimeout(1000);
 
     // 10. 주문정보 동의 버튼 클릭
     await page.locator('button#focus_btn').click();
