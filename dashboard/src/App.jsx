@@ -281,8 +281,11 @@ function App() {
       )}
 
       <main className="main-content">
-        <div className="test-grid">
-          {tests.map(test => {
+        {(() => {
+          const giftTests = tests.filter(test => test.includes('kakao') || test.includes('generate'));
+          const otherTests = tests.filter(test => !test.includes('kakao') && !test.includes('generate'));
+
+          const renderTestCard = (test) => {
             const isAuthTest = test.includes('generate') || test === '초.ts';
             const isUrgent = isAuthTest && isSessionExpired;
 
@@ -334,12 +337,38 @@ function App() {
                     </button>
                   )}
                 </div>
-                {/* loading-bar 제거됨 */}
               </div>
             );
-          })}
-          {tests.length === 0 && <div className="empty-state">No tests found in /tests folder.</div>}
-        </div>
+          };
+
+          return (
+            <>
+              {giftTests.length > 0 && (
+                <div className="category-wrapper" style={{ marginBottom: '2.5rem' }}>
+                  <h2 className="category-title" style={{ fontSize: '1.3rem', color: '#e2e8f0', marginBottom: '1.2rem', paddingLeft: '0.8rem', borderLeft: '4px solid #facc15', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    🎁 카카오 선물하기 카테고리
+                  </h2>
+                  <div className="test-grid">
+                    {giftTests.map(renderTestCard)}
+                  </div>
+                </div>
+              )}
+
+              {otherTests.length > 0 && (
+                <div className="category-wrapper" style={{ marginBottom: '2.5rem' }}>
+                  <h2 className="category-title" style={{ fontSize: '1.3rem', color: '#e2e8f0', marginBottom: '1.2rem', paddingLeft: '0.8rem', borderLeft: '4px solid #3b82f6', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    📦 기타 서비스 자동화
+                  </h2>
+                  <div className="test-grid">
+                    {otherTests.map(renderTestCard)}
+                  </div>
+                </div>
+              )}
+
+              {tests.length === 0 && <div className="empty-state">No tests found in /tests folder.</div>}
+            </>
+          );
+        })()}
 
         {/* 사용자 입력 전송 컨트롤 (Test Interaction) */}
         <div className="input-control-section fade-in">
