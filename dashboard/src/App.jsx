@@ -346,7 +346,7 @@ function App() {
               {giftTests.length > 0 && (
                 <div className="category-wrapper" style={{ marginBottom: '2.5rem' }}>
                   <h2 className="category-title" style={{ fontSize: '1.3rem', color: '#e2e8f0', marginBottom: '1.2rem', paddingLeft: '0.8rem', borderLeft: '4px solid #facc15', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    🎁 카카오 선물하기 카테고리
+                    🎁 선물하기 자동화
                   </h2>
                   <div className="test-grid">
                     {giftTests.map(renderTestCard)}
@@ -357,7 +357,7 @@ function App() {
               {otherTests.length > 0 && (
                 <div className="category-wrapper" style={{ marginBottom: '2.5rem' }}>
                   <h2 className="category-title" style={{ fontSize: '1.3rem', color: '#e2e8f0', marginBottom: '1.2rem', paddingLeft: '0.8rem', borderLeft: '4px solid #3b82f6', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    📦 기타 서비스 자동화
+                    📦 여기어때 자동화
                   </h2>
                   <div className="test-grid">
                     {otherTests.map(renderTestCard)}
