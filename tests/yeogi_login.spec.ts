@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './fixtures';
 
 test('여기어때 사이트 진입', async ({ page }) => {
     // 1. 여기어때 메인 페이지로 이동
