@@ -21,15 +21,18 @@ jobs:
           if [ ! -d "levyplay" ]; then
             git clone https://github.com/${{ github.repository }}.git levyplay
             cd levyplay
-          else
             cd levyplay
-            # auth.json 백업 (테스트 중 생성된 세션 보존)
+            # auth.json 및 users.db 백업 (테스트 중 생성된 세션 및 DB 보존)
             cp auth.json ../auth_backup.json 2>/dev/null || true
+            cp users.db ../users_backup.db 2>/dev/null || true
+
             # 서버 코드를 GitHub 최신으로 강제 동기화 (충돌 방지)
             git fetch origin
             git reset --hard origin/main
-            # auth.json 복원
+
+            # 백업 복원
             cp ../auth_backup.json auth.json 2>/dev/null || true
+            cp ../users_backup.db users.db 2>/dev/null || true
           fi
 
           # 1.5 Docker 설치 확인 및 자동 설치 (최초 1회용)
@@ -76,10 +79,17 @@ jobs:
           sudo docker rm levyplay-container || true
 
           # 4. 새 컨테이너 실행 (항상 재시작, 3001번 포트 사용)
-          # auth.json이 있으면 마운트 (로그인 유지)
+          # auth.json과 users.db가 있으면 마운트 (데이터 영구 보존)
           AUTH_MOUNT=""
+          DB_MOUNT=""
           if [ -f "auth.json" ]; then
             AUTH_MOUNT="-v $(pwd)/auth.json:/app/auth.json"
+          fi
+          if [ -f "users.db" ]; then
+            DB_MOUNT="-v $(pwd)/users.db:/app/users.db"
+          else
+            touch users.db # 파일이 없으면 빈 파일 생성
+            DB_MOUNT="-v $(pwd)/users.db:/app/users.db"
           fi
 
           sudo docker run -d \
@@ -88,6 +98,7 @@ jobs:
             -p 3001:3001 \
             --ipc=host \
             $AUTH_MOUNT \
+            $DB_MOUNT \
             levyplay-app
             
           # 5. 불필요한 미사용 이미지 정리 (용량 확보)
