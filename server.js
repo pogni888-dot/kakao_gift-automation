@@ -126,6 +126,47 @@ app.get('/api/users/:id', (req, res) => {
     });
 });
 
+// Update User API (For Postman)
+app.put('/api/users/:id', (req, res) => {
+    const { id } = req.params;
+    const { name, password } = req.body;
+
+    if (!name || !password) {
+        return res.status(400).json({ error: '수정할 이름과 비밀번호를 모두 입력해주세요.' });
+    }
+
+    db.run("UPDATE users SET name = ?, password = ? WHERE id = ?", [name, password, id], function(err) {
+        if (err) {
+            console.error('Error updating user:', err);
+            return res.status(500).json({ error: '회원 정보 수정 중 에러가 발생했습니다.' });
+        }
+        
+        if (this.changes > 0) {
+            res.json({ message: '회원 정보가 성공적으로 수정되었습니다.' });
+        } else {
+            res.status(404).json({ error: '해당 회원을 찾을 수 없습니다.' });
+        }
+    });
+});
+
+// Delete User API (For Postman)
+app.delete('/api/users/:id', (req, res) => {
+    const { id } = req.params;
+
+    db.run("DELETE FROM users WHERE id = ?", [id], function(err) {
+        if (err) {
+            console.error('Error deleting user:', err);
+            return res.status(500).json({ error: '회원 삭제 중 에러가 발생했습니다.' });
+        }
+        
+        if (this.changes > 0) {
+            res.json({ message: '회원이 성공적으로 삭제되었습니다.' });
+        } else {
+            res.status(404).json({ error: '해당 회원을 찾을 수 없습니다.' });
+        }
+    });
+});
+
 // API to list test files
 app.get('/api/tests', (req, res) => {
     const testsDir = path.join(__dirname, 'tests');
