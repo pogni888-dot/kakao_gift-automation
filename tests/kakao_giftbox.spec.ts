@@ -15,7 +15,7 @@ test('장바구니 테스트', async ({ page }) => {
     // 1. 카카오 선물하기 홈으로 이동
     await page.goto('https://gift.kakao.com/home');
 
-    // 수신자 초기화 (localStorage 클리어)
+    // 수신자 초기화 (localStorage 클리어!)
     await page.evaluate(() => {
         try { localStorage.clear(); sessionStorage.clear(); } catch (e) { }
     });
