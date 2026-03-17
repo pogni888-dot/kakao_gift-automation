@@ -94,6 +94,24 @@ app.get('/api/users', (req, res) => {
     });
 });
 
+// Get Specific User API (For Postman)
+app.get('/api/users/:id', (req, res) => {
+    const { id } = req.params;
+
+    db.get("SELECT id, name, user_id, password FROM users WHERE id = ?", [id], (err, row) => {
+        if (err) {
+            console.error('Error fetching user:', err);
+            return res.status(500).json({ error: '데이터베이스 조회 중 에러가 발생했습니다.' });
+        }
+        
+        if (row) {
+            res.json(row);
+        } else {
+            res.status(404).json({ error: '해당 회원을 찾을 수 없습니다.' });
+        }
+    });
+});
+
 // API to list test files
 app.get('/api/tests', (req, res) => {
     const testsDir = path.join(__dirname, 'tests');
