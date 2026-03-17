@@ -720,3 +720,68 @@ h3 {
   color: #94a3b8;
   cursor: not-allowed;
 }
+
+/* Mobile Responsive Adjustments */
+@media (max-width: 768px) {
+  .container {
+    padding: 1rem;
+    gap: 1.5rem;
+  }
+
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .header > div {
+    width: 100%;
+    justify-content: flex-start;
+    flex-wrap: wrap; /* 로그아웃/이름/뱃지 공간 확보 */
+  }
+
+  .logo {
+    font-size: 1.2rem;
+  }
+
+  .logo h1 {
+    font-size: 1.3rem;
+  }
+
+  .test-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .card-header {
+    margin-bottom: 1rem;
+  }
+  
+  .terminal-window {
+    height: 250px;
+  }
+  
+  .auth-modal {
+    padding: 1.5rem;
+    width: 95%;
+  }
+  
+  .stream-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .stream-header button {
+    margin-left: 0 !important;
+    margin-top: 8px;
+  }
+
+  .input-wrapper {
+    flex-direction: column;
+  }
+  
+  .btn-send {
+    width: 100%;
+    padding: 12px;
+  }
+}
