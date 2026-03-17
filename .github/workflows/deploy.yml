@@ -17,24 +17,25 @@ jobs:
         key: ${{ secrets.ORACLE_SSH_KEY }}      # 오라클 서버 접속용 SSH 비밀키 (GitHub Secrets에 등록 필요)
         port: 22
         script: |
-          # 1. 프로젝트 폴더가 없으면 클론, 있으면 폴더로 이동 후 업데이트
+          # 1. 프로젝트 폴더가 없으면 클론
           if [ ! -d "levyplay" ]; then
             git clone https://github.com/${{ github.repository }}.git levyplay
-            cd levyplay
-            cd levyplay
-            # auth.json 및 users.db 백업 (테스트 중 생성된 세션 및 DB 보존)
-            cp auth.json ../auth_backup.json 2>/dev/null || true
-            cp users.db ../users_backup.db 2>/dev/null || true
-
-            # 서버 코드를 GitHub 최신으로 강제 동기화 (충돌 방지)
-            git fetch origin
-            git reset --hard origin/main
-
-            # 백업 복원
-            cp ../auth_backup.json auth.json 2>/dev/null || true
-            cp ../users_backup.db users.db 2>/dev/null || true
           fi
 
+          # 폴더로 이동 후 업데이트 강제 동기화
+          cd levyplay
+
+          # auth.json 및 users.db 백업 (테스트 중 생성된 세션 및 DB 보존)
+          cp auth.json ../auth_backup.json 2>/dev/null || true
+          cp users.db ../users_backup.db 2>/dev/null || true
+
+          # 서버 코드를 GitHub 최신으로 강제 동기화 (충돌 방지)
+          git fetch origin
+          git reset --hard origin/main
+
+          # 백업 복원
+          cp ../auth_backup.json auth.json 2>/dev/null || true
+          cp ../users_backup.db users.db 2>/dev/null || true
           # 1.5 Docker 설치 확인 및 자동 설치 (최초 1회용)
           if ! command -v docker &> /dev/null; then
             echo "Docker not found. Installing..."
