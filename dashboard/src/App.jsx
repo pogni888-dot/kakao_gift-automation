@@ -33,6 +33,17 @@ function App() {
   const [authPw, setAuthPw] = useState('');
   const [pendingTest, setPendingTest] = useState(null);
 
+  // 현재 로그인된 유저
+  const [loggedInUser, setLoggedInUser] = useState(() => {
+    const saved = localStorage.getItem('loggedInUser');
+    return saved ? JSON.parse(saved) : null;
+  });
+
+  // 로그인 모달 상태
+  const [showLoginModal, setShowLoginModal] = useState(false);
+  const [loginId, setLoginId] = useState('');
+  const [loginPw, setLoginPw] = useState('');
+
   // 회원가입 상태
   const [showSignUpModal, setShowSignUpModal] = useState(false);
   const [signUpName, setSignUpName] = useState('');
@@ -210,6 +221,43 @@ function App() {
     }
   };
 
+  const handleLoginSubmit = async () => {
+    if (!loginId || !loginPw) {
+      alert('아이디와 비밀번호를 모두 입력해주세요.');
+      return;
+    }
+
+    try {
+      const response = await fetch(`${API_BASE}/api/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user_id: loginId, password: loginPw }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        alert(`어서오세요, ${data.user.name}님`);
+        localStorage.setItem('loggedInUser', JSON.stringify(data.user));
+        setShowLoginModal(false);
+        // 2초 대기 후 새로고침
+        setTimeout(() => {
+          window.location.reload();
+        }, 2000);
+      } else {
+        alert(data.error || '로그인에 실패했습니다.');
+      }
+    } catch (err) {
+      console.error('Login Error:', err);
+      alert('서버와 통신 중 에러가 발생했습니다.');
+    }
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('loggedInUser');
+    window.location.reload();
+  };
+
   return (
     <div className="container">
       <header className="header">
@@ -218,8 +266,17 @@ function App() {
           <h1>최민호 자동화 포트폴리오</h1>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <button className="btn" onClick={() => setShowSignUpModal(true)} style={{ backgroundColor: '#3b82f6', color: '#fff' }}>회원가입</button>
-          <button className="btn" style={{ backgroundColor: '#10b981', color: '#fff' }}>로그인</button>
+          {!loggedInUser ? (
+            <>
+              <button className="btn" onClick={() => setShowSignUpModal(true)} style={{ backgroundColor: '#3b82f6', color: '#fff' }}>회원가입</button>
+              <button className="btn" onClick={() => setShowLoginModal(true)} style={{ backgroundColor: '#10b981', color: '#fff' }}>로그인</button>
+            </>
+          ) : (
+            <>
+              <span style={{ color: '#fff', fontWeight: 'bold' }}>{loggedInUser.name}님</span>
+              <button className="btn" onClick={handleLogout} style={{ backgroundColor: '#ef4444', color: '#fff' }}>로그아웃</button>
+            </>
+          )}
           <div className="status-badge">
             <div className={`status-dot ${isConnected ? 'online' : 'offline'}`} />
             {isConnected ? 'System Ready' : 'Disconnected'}
@@ -277,6 +334,54 @@ function App() {
                 </button>
                 <button className="btn btn-run auth-submit-btn" onClick={handleAuthSubmit}>
                   <Play size={16} /> 로그인 세션 생성
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 로그인 모달 */}
+      {showLoginModal && (
+        <div className="modal-overlay fade-in" onClick={() => setShowLoginModal(false)}>
+          <div className="auth-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="auth-modal-header">
+              <CheckCircle size={22} />
+              <h2>로그인</h2>
+            </div>
+            <p className="auth-modal-desc">
+              아이디와 비밀번호를 입력해주세요.
+            </p>
+            <div className="auth-form">
+              <div className="auth-field">
+                <label htmlFor="login-id">아이디</label>
+                <input
+                  id="login-id"
+                  type="text"
+                  placeholder="아이디 입력"
+                  value={loginId}
+                  onChange={(e) => setLoginId(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && document.getElementById('login-pw').focus()}
+                  autoFocus
+                />
+              </div>
+              <div className="auth-field">
+                <label htmlFor="login-pw">비밀번호</label>
+                <input
+                  id="login-pw"
+                  type="password"
+                  placeholder="비밀번호 입력"
+                  value={loginPw}
+                  onChange={(e) => setLoginPw(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleLoginSubmit()}
+                />
+              </div>
+              <div className="auth-actions">
+                <button className="btn auth-cancel-btn" onClick={() => setShowLoginModal(false)}>
+                  취소
+                </button>
+                <button className="btn btn-run auth-submit-btn" onClick={handleLoginSubmit}>
+                  <CheckCircle size={16} /> 로그인
                 </button>
               </div>
             </div>

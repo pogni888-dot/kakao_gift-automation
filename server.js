@@ -36,7 +36,7 @@ const db = new sqlite3.Database(dbPath, (err) => {
 // User Registration API
 app.post('/api/signup', (req, res) => {
     const { name, user_id, password } = req.body;
-    
+
     if (!name || !user_id || !password) {
         return res.status(400).json({ error: '모든 필드를 입력해주세요.' });
     }
@@ -46,17 +46,39 @@ app.post('/api/signup', (req, res) => {
             console.error('DB Error:', err);
             return res.status(500).json({ error: '서버 에러가 발생했습니다.' });
         }
-        
+
         if (row) {
             return res.status(409).json({ error: '중복된 아이디입니다' });
         } else {
-            db.run("INSERT INTO users (name, user_id, password) VALUES (?, ?, ?)", [name, user_id, password], function(err) {
+            db.run("INSERT INTO users (name, user_id, password) VALUES (?, ?, ?)", [name, user_id, password], function (err) {
                 if (err) {
                     console.error('Insert Error:', err);
                     return res.status(500).json({ error: '회원가입 중 에러가 발생했습니다.' });
                 }
                 res.status(201).json({ message: '회원가입이 완료되었습니다.' });
             });
+        }
+    });
+});
+
+// User Login API
+app.post('/api/login', (req, res) => {
+    const { user_id, password } = req.body;
+
+    if (!user_id || !password) {
+        return res.status(400).json({ error: '아이디와 비밀번호를 모두 입력해주세요.' });
+    }
+
+    db.get("SELECT * FROM users WHERE user_id = ? AND password = ?", [user_id, password], (err, row) => {
+        if (err) {
+            console.error('Login DB Error:', err);
+            return res.status(500).json({ error: '서버 에러가 발생했습니다.' });
+        }
+
+        if (row) {
+            return res.status(200).json({ message: '로그인 성공', user: { name: row.name, user_id: row.user_id } });
+        } else {
+            return res.status(401).json({ error: '아이디 또는 비밀번호가 일치하지 않습니다.' });
         }
     });
 });
