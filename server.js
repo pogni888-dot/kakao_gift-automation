@@ -85,13 +85,27 @@ app.post('/api/login', (req, res) => {
 
 // Get All Users API (For Postman)
 app.get('/api/users', (req, res) => {
-    db.all("SELECT id, name, user_id, password FROM users", [], (err, rows) => {
-        if (err) {
-            console.error('Error fetching users:', err);
-            return res.status(500).json({ error: '데이터베이스 조회 중 에러가 발생했습니다.' });
-        }
-        res.json(rows);
-    });
+    const { name } = req.query;
+
+    if (name) {
+        // 이름이 포함된 회원 검색 (부분 일치)
+        db.all("SELECT id, name, user_id, password FROM users WHERE name LIKE ?", [`%${name}%`], (err, rows) => {
+            if (err) {
+                console.error('Error fetching users:', err);
+                return res.status(500).json({ error: '데이터베이스 조회 중 에러가 발생했습니다.' });
+            }
+            res.json(rows);
+        });
+    } else {
+        // 쿼리 파라미터가 없으면 전체 회원 조회
+        db.all("SELECT id, name, user_id, password FROM users", [], (err, rows) => {
+            if (err) {
+                console.error('Error fetching users:', err);
+                return res.status(500).json({ error: '데이터베이스 조회 중 에러가 발생했습니다.' });
+            }
+            res.json(rows);
+        });
+    }
 });
 
 // Get Specific User API (For Postman)
