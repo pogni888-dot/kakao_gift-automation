@@ -117,7 +117,7 @@ app.get('/api/users/:id', (req, res) => {
             console.error('Error fetching user:', err);
             return res.status(500).json({ error: '데이터베이스 조회 중 에러가 발생했습니다.' });
         }
-        
+
         if (row) {
             res.json(row);
         } else {
@@ -129,18 +129,45 @@ app.get('/api/users/:id', (req, res) => {
 // Update User API (For Postman)
 app.put('/api/users/:id', (req, res) => {
     const { id } = req.params;
-    const { name, password } = req.body;
+    const { name, user_id, password } = req.body;
 
-    if (!name || !password) {
-        return res.status(400).json({ error: '수정할 이름과 비밀번호를 모두 입력해주세요.' });
+    // 변경할 필드가 하나도 없는 경우
+    if (!name && !user_id && !password) {
+        return res.status(400).json({ error: '수정할 항목을 최소 하나 이상 입력해주세요 (name, user_id, password 중).' });
     }
 
-    db.run("UPDATE users SET name = ?, password = ? WHERE id = ?", [name, password, id], function(err) {
+    // 동적으로 SQL 쿼리 생성 (부분 수정 지원)
+    const updates = [];
+    const params = [];
+
+    if (name) {
+        updates.push("name = ?");
+        params.push(name);
+    }
+    if (user_id) {
+        updates.push("user_id = ?");
+        params.push(user_id);
+    }
+    if (password) {
+        updates.push("password = ?");
+        params.push(password);
+    }
+
+    // 마지막으로 WHERE id = ? 조건을 위한 파라미터 추가
+    params.push(id);
+
+    const sql = `UPDATE users SET ${updates.join(", ")} WHERE id = ?`;
+
+    db.run(sql, params, function (err) {
         if (err) {
             console.error('Error updating user:', err);
+            // 아이디 중복 에러 처리
+            if (err.message.includes('UNIQUE constraint failed')) {
+               return res.status(409).json({ error: '이미 사용 중인 아이디입니다.' });
+            }
             return res.status(500).json({ error: '회원 정보 수정 중 에러가 발생했습니다.' });
         }
-        
+
         if (this.changes > 0) {
             res.json({ message: '회원 정보가 성공적으로 수정되었습니다.' });
         } else {
@@ -153,12 +180,12 @@ app.put('/api/users/:id', (req, res) => {
 app.delete('/api/users/:id', (req, res) => {
     const { id } = req.params;
 
-    db.run("DELETE FROM users WHERE id = ?", [id], function(err) {
+    db.run("DELETE FROM users WHERE id = ?", [id], function (err) {
         if (err) {
             console.error('Error deleting user:', err);
             return res.status(500).json({ error: '회원 삭제 중 에러가 발생했습니다.' });
         }
-        
+
         if (this.changes > 0) {
             res.json({ message: '회원이 성공적으로 삭제되었습니다.' });
         } else {
