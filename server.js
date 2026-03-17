@@ -20,6 +20,47 @@ const io = new Server(server, {
 
 const PORT = 3001;
 
+// Initialize SQLite Database
+const sqlite3 = require('sqlite3').verbose();
+const dbPath = path.join(__dirname, 'users.db');
+const db = new sqlite3.Database(dbPath, (err) => {
+    if (err) {
+        console.error('Error opening database:', err);
+    } else {
+        db.serialize(() => {
+            db.run("CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, user_id TEXT UNIQUE, password TEXT)");
+        });
+    }
+});
+
+// User Registration API
+app.post('/api/signup', (req, res) => {
+    const { name, user_id, password } = req.body;
+    
+    if (!name || !user_id || !password) {
+        return res.status(400).json({ error: '모든 필드를 입력해주세요.' });
+    }
+
+    db.get("SELECT * FROM users WHERE user_id = ?", [user_id], (err, row) => {
+        if (err) {
+            console.error('DB Error:', err);
+            return res.status(500).json({ error: '서버 에러가 발생했습니다.' });
+        }
+        
+        if (row) {
+            return res.status(409).json({ error: '중복된 아이디입니다' });
+        } else {
+            db.run("INSERT INTO users (name, user_id, password) VALUES (?, ?, ?)", [name, user_id, password], function(err) {
+                if (err) {
+                    console.error('Insert Error:', err);
+                    return res.status(500).json({ error: '회원가입 중 에러가 발생했습니다.' });
+                }
+                res.status(201).json({ message: '회원가입이 완료되었습니다.' });
+            });
+        }
+    });
+});
+
 // API to list test files
 app.get('/api/tests', (req, res) => {
     const testsDir = path.join(__dirname, 'tests');

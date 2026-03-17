@@ -33,6 +33,12 @@ function App() {
   const [authPw, setAuthPw] = useState('');
   const [pendingTest, setPendingTest] = useState(null);
 
+  // 회원가입 상태
+  const [showSignUpModal, setShowSignUpModal] = useState(false);
+  const [signUpName, setSignUpName] = useState('');
+  const [signUpId, setSignUpId] = useState('');
+  const [signUpPw, setSignUpPw] = useState('');
+
   const fetchAuthStatus = () => {
     fetch(`${API_BASE}/api/auth-status`)
       .then(res => res.json())
@@ -172,6 +178,38 @@ function App() {
     socket.emit('stop-test');
   };
 
+  const handleSignUpSubmit = async () => {
+    if (!signUpName || !signUpId || !signUpPw) {
+      alert('모든 필드를 입력해주세요.');
+      return;
+    }
+
+    try {
+      const response = await fetch(`${API_BASE}/api/signup`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: signUpName, user_id: signUpId, password: signUpPw }),
+      });
+
+      const data = await response.json();
+
+      if (response.status === 409) {
+        alert('중복된 아이디입니다');
+      } else if (response.ok) {
+        alert('회원가입이 완료되었습니다.');
+        setShowSignUpModal(false);
+        setSignUpName('');
+        setSignUpId('');
+        setSignUpPw('');
+      } else {
+        alert(data.error || '회원가입 중 에러가 발생했습니다.');
+      }
+    } catch (err) {
+      console.error('SignUp Error:', err);
+      alert('서버와 통신 중 에러가 발생했습니다.');
+    }
+  };
+
   return (
     <div className="container">
       <header className="header">
@@ -179,9 +217,13 @@ function App() {
           <Activity className="icon-pulse" size={28} />
           <h1>최민호 자동화 포트폴리오</h1>
         </div>
-        <div className="status-badge">
-          <div className={`status-dot ${isConnected ? 'online' : 'offline'}`} />
-          {isConnected ? 'System Ready' : 'Disconnected'}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <button className="btn" onClick={() => setShowSignUpModal(true)} style={{ backgroundColor: '#3b82f6', color: '#fff' }}>회원가입</button>
+          <button className="btn" style={{ backgroundColor: '#10b981', color: '#fff' }}>로그인</button>
+          <div className="status-badge">
+            <div className={`status-dot ${isConnected ? 'online' : 'offline'}`} />
+            {isConnected ? 'System Ready' : 'Disconnected'}
+          </div>
         </div>
       </header>
 
@@ -235,6 +277,65 @@ function App() {
                 </button>
                 <button className="btn btn-run auth-submit-btn" onClick={handleAuthSubmit}>
                   <Play size={16} /> 로그인 세션 생성
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 회원가입 모달 */}
+      {showSignUpModal && (
+        <div className="modal-overlay fade-in" onClick={() => setShowSignUpModal(false)}>
+          <div className="auth-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="auth-modal-header">
+              <CheckCircle size={22} />
+              <h2>회원가입</h2>
+            </div>
+            <p className="auth-modal-desc">
+              회원 정보를 입력해주세요.
+            </p>
+            <div className="auth-form">
+              <div className="auth-field">
+                <label htmlFor="signup-name">이름</label>
+                <input
+                  id="signup-name"
+                  type="text"
+                  placeholder="이름 입력"
+                  value={signUpName}
+                  onChange={(e) => setSignUpName(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && document.getElementById('signup-id').focus()}
+                  autoFocus
+                />
+              </div>
+              <div className="auth-field">
+                <label htmlFor="signup-id">아이디</label>
+                <input
+                  id="signup-id"
+                  type="text"
+                  placeholder="아이디 입력"
+                  value={signUpId}
+                  onChange={(e) => setSignUpId(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && document.getElementById('signup-pw').focus()}
+                />
+              </div>
+              <div className="auth-field">
+                <label htmlFor="signup-pw">비밀번호</label>
+                <input
+                  id="signup-pw"
+                  type="password"
+                  placeholder="비밀번호 입력"
+                  value={signUpPw}
+                  onChange={(e) => setSignUpPw(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleSignUpSubmit()}
+                />
+              </div>
+              <div className="auth-actions">
+                <button className="btn auth-cancel-btn" onClick={() => setShowSignUpModal(false)}>
+                  취소
+                </button>
+                <button className="btn btn-run auth-submit-btn" onClick={handleSignUpSubmit}>
+                  <CheckCircle size={16} /> 확인
                 </button>
               </div>
             </div>
