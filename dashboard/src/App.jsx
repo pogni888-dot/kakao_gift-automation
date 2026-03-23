@@ -19,6 +19,7 @@ const testDescriptions = {
   'generate_auth.spec.ts': '서버 내 카카오 로그인 세션(auth.json) 생성 및 저장',
   'yeogi_login.spec.ts': '여기어때 로그인(카카오톡)',
   'yeogi_searchs.spec.ts': '지역 검색 후 상세페이지 진입 (대실 예약)',
+  'yeogi_searchs_2.spec.ts': '지역 검색 후 상세페이지 진입 (숙박 예약)',
 };
 
 function App() {
