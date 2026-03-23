@@ -18,7 +18,7 @@ const testDescriptions = {
   'kakao_wishlist.spec.ts': '상품 검색 및 상세페이지 내 위시리스트 추가',
   'generate_auth.spec.ts': '서버 내 카카오 로그인 세션(auth.json) 생성 및 저장',
   'yeogi_login.spec.ts': '여기어때 로그인(카카오톡)',
-  'yeogi_searchs.spec.ts': '지역 검색 후 상세페이지 진입',
+  'yeogi_searchs.spec.ts': '지역 검색 후 상세페이지 진입 (대실 예약)',
 };
 
 function App() {

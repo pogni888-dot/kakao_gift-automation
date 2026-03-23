@@ -124,11 +124,11 @@ test('여기어때 사이트 진입', async ({ page }) => {
     await page.waitForTimeout(3000);
 
     // 1. 화면에 버튼 클래스중 span태그의 텍스트값이 '대실 예약'인 버튼이 있는지 확인하고, 그중 첫번째 요소 클릭
-    console.log("'대실 예약' 버튼 확인 및 클릭 시도...");
-    const reserveButton = page.locator('button').filter({ has: page.locator('span', { hasText: '대실 예약' }) });
+    console.log("'숙박 예약' 버튼 확인 및 클릭 시도...");
+    const reserveButton = page.locator('button').filter({ has: page.locator('span', { hasText: '숙박 예약' }) });
 
     if (await reserveButton.count() > 0) {
-        console.log("'대실 예약' 버튼을 찾았습니다. 해당 위치로 스크롤합니다.");
+        console.log("'숙박 예약' 버튼을 찾았습니다. 해당 위치로 스크롤합니다.");
         const firstButton = reserveButton.first();
         await firstButton.scrollIntoViewIfNeeded();
         await page.waitForTimeout(2000);
@@ -136,7 +136,7 @@ test('여기어때 사이트 진입', async ({ page }) => {
         console.log("첫 번째 요소를 클릭합니다.");
         await firstButton.click();
     } else {
-        console.log("'대실 예약' 버튼을 찾을 수 없습니다.");
+        console.log("'숙박 예약' 버튼을 찾을 수 없습니다.");
     }
 
     // 11. 5초 대기
