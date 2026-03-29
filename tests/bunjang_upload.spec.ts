@@ -151,7 +151,7 @@ test.describe('번개장터 상품 등록', () => {
         await page.waitForTimeout(1000);
 
         // 27. '테스트상품설명' 입력
-        await descTextarea.fill('테스트상품설명');
+        await descTextarea.fill('테스트상품설명입니다아아아');
         console.log('27. 상품 설명 입력 완료');
 
         // 28. 1초 대기

@@ -20,7 +20,7 @@ const testDescriptions = {
   'yeogi_login.spec.ts': '여기어때 로그인(카카오톡)',
   'yeogi_searchs.spec.ts': '지역 검색 후 상세페이지 진입 (대실 예약)',
   'yeogi_searchs_2.spec.ts': '지역 검색 후 상세페이지 진입 (숙박 예약)',
-  'bunjang_login.spec.ts': '번개장터 로그인(카카오톡)',
+  'bunjang_login.spec.ts': '서버 내 번개장터 로그인 세션(bunjang_auth.json) 생성 및 저장',
   'bunjang_upload.spec.ts': '상품 등록 (이미지 API 연동)',
 };
 
@@ -498,11 +498,11 @@ function App() {
           const otherTests = tests.filter(test => !test.includes('kakao') && !test.includes('generate') && !test.includes('bunjang'));
 
           const renderTestCard = (test) => {
-            const isAuthTest = test.includes('generate') || test === '초.ts';
+            const isAuthTest = test.includes('generate') || test === 'bunjang_login.spec.ts' || test === '초.ts';
             const isUrgent = isAuthTest && isSessionExpired;
 
             // [New] Generate 파일 선행 실행이 필요한 테스트 파일들
-            const isDependentTest = /resume|wishlist|giftbox/i.test(test);
+            const isDependentTest = /resume|wishlist|giftbox|bunjang_upload/i.test(test);
             const showTooltip = testDescriptions[test] || isAuthTest || isDependentTest;
 
             return (
@@ -517,7 +517,7 @@ function App() {
                     )}
                     {isDependentTest && (
                       <div style={{ color: '#ef4444', marginTop: '6px', fontSize: '0.8rem', paddingTop: '4px', borderTop: '1px solid rgba(255,255,255,0.1)', fontWeight: 'bold' }}>
-                        ⚠ generate 파일 실행 후 로그인 세션 생성 필요
+                        {test.includes('bunjang') ? '⚠ login 파일 실행 후 로그인 세션 생성 필요' : '⚠ generate 파일 실행 후 로그인 세션 생성 필요'}
                       </div>
                     )}
                     <div className="tooltip-arrow"></div>
