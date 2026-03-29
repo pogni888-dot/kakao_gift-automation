@@ -229,6 +229,85 @@ app.get('/api/auth-status', (req, res) => {
     }
 });
 
+// ============================================================
+// Image Upload API (for Playwright automation)
+// ============================================================
+const uploadsDir = path.join(__dirname, 'uploads');
+if (!fs.existsSync(uploadsDir)) {
+    fs.mkdirSync(uploadsDir, { recursive: true });
+}
+
+// POST /api/image - 이미지 업로드
+// Postman: Body → binary → 파일 선택
+// Header: Content-Type: image/png (또는 image/jpeg)
+// Query: ?filename=product.png (선택사항, 없으면 uploaded_image.png)
+app.post('/api/image', express.raw({ type: ['image/png', 'image/jpeg', 'image/jpg', 'image/webp'], limit: '10mb' }), (req, res) => {
+    if (!req.body || req.body.length === 0) {
+        return res.status(400).json({ error: '이미지 데이터가 없습니다. Postman에서 Body → binary로 파일을 선택해주세요.' });
+    }
+
+    // 파일명 결정 (쿼리 파라미터 또는 기본값)
+    const filename = req.query.filename || 'uploaded_image.png';
+    const filePath = path.join(uploadsDir, filename);
+
+    fs.writeFileSync(filePath, req.body);
+    console.log(`✅ 이미지 저장 완료: ${filePath} (${req.body.length} bytes)`);
+
+    res.status(201).json({
+        message: '이미지 업로드 성공',
+        filename: filename,
+        size: req.body.length,
+        url: `/api/image/${filename}`
+    });
+});
+
+// GET /api/image - 저장된 이미지 목록 조회
+app.get('/api/image', (req, res) => {
+    if (!fs.existsSync(uploadsDir)) {
+        return res.json({ images: [] });
+    }
+
+    const files = fs.readdirSync(uploadsDir).filter(f =>
+        /\.(png|jpg|jpeg|webp)$/i.test(f)
+    );
+
+    const images = files.map(f => {
+        const stats = fs.statSync(path.join(uploadsDir, f));
+        return {
+            filename: f,
+            size: stats.size,
+            uploadedAt: stats.mtimeMs,
+            url: `/api/image/${f}`
+        };
+    });
+
+    res.json({ images });
+});
+
+// GET /api/image/:filename - 특정 이미지 파일 다운로드 (Playwright에서 사용)
+app.get('/api/image/:filename', (req, res) => {
+    const filePath = path.join(uploadsDir, req.params.filename);
+
+    if (!fs.existsSync(filePath)) {
+        return res.status(404).json({ error: '해당 이미지를 찾을 수 없습니다.' });
+    }
+
+    res.sendFile(filePath);
+});
+
+// DELETE /api/image/:filename - 특정 이미지 삭제
+app.delete('/api/image/:filename', (req, res) => {
+    const filePath = path.join(uploadsDir, req.params.filename);
+
+    if (!fs.existsSync(filePath)) {
+        return res.status(404).json({ error: '해당 이미지를 찾을 수 없습니다.' });
+    }
+
+    fs.unlinkSync(filePath);
+    console.log(`🗑️ 이미지 삭제 완료: ${filePath}`);
+    res.json({ message: '이미지가 삭제되었습니다.', filename: req.params.filename });
+});
+
 // Serve test results (videos, screenshots)
 const testResultsDir = path.join(__dirname, 'test-results');
 if (!fs.existsSync(testResultsDir)) {
