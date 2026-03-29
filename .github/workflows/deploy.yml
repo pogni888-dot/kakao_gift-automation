@@ -83,6 +83,8 @@ jobs:
           # auth.json과 users.db가 있으면 마운트 (데이터 영구 보존)
           AUTH_MOUNT=""
           DB_MOUNT=""
+          BUNJANG_AUTH_MOUNT=""
+          UPLOADS_MOUNT=""
           if [ -f "auth.json" ]; then
             AUTH_MOUNT="-v $(pwd)/auth.json:/app/auth.json"
           fi
@@ -92,6 +94,12 @@ jobs:
             touch users.db # 파일이 없으면 빈 파일 생성
             DB_MOUNT="-v $(pwd)/users.db:/app/users.db"
           fi
+          if [ -f "bunjang_auth.json" ]; then
+            BUNJANG_AUTH_MOUNT="-v $(pwd)/bunjang_auth.json:/app/bunjang_auth.json"
+          fi
+          # uploads 폴더 영구 보존 (API 이미지 저장용)
+          mkdir -p uploads
+          UPLOADS_MOUNT="-v $(pwd)/uploads:/app/uploads"
 
           sudo docker run -d \
             --name levyplay-container \
@@ -100,6 +108,8 @@ jobs:
             --ipc=host \
             $AUTH_MOUNT \
             $DB_MOUNT \
+            $BUNJANG_AUTH_MOUNT \
+            $UPLOADS_MOUNT \
             levyplay-app
             
           # 5. 불필요한 미사용 이미지 정리 (용량 확보)
