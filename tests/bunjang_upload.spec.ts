@@ -97,7 +97,7 @@ test.describe('번개장터 상품 등록', () => {
 
         // 17. label 클래스명 'sc-elNKlv kBjqEq' 요소 클릭
         console.log('17. 라벨 클릭...');
-        await page.locator('label.sc-elNKlv.kBjqEq').click();
+        await page.locator('label:has(input[type="radio"]):has-text("새 상품 (미사용)")').click();
 
         // 18. 1초 대기
         await page.waitForTimeout(1000);
