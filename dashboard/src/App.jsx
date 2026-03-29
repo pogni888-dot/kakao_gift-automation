@@ -21,6 +21,7 @@ const testDescriptions = {
   'yeogi_searchs.spec.ts': '지역 검색 후 상세페이지 진입 (대실 예약)',
   'yeogi_searchs_2.spec.ts': '지역 검색 후 상세페이지 진입 (숙박 예약)',
   'bunjang_login.spec.ts': '번개장터 로그인(카카오톡)',
+  'bunjang_upload.spec.ts': '상품 등록 (이미지 API 연동)',
 };
 
 function App() {
