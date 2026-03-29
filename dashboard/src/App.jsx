@@ -20,6 +20,7 @@ const testDescriptions = {
   'yeogi_login.spec.ts': '여기어때 로그인(카카오톡)',
   'yeogi_searchs.spec.ts': '지역 검색 후 상세페이지 진입 (대실 예약)',
   'yeogi_searchs_2.spec.ts': '지역 검색 후 상세페이지 진입 (숙박 예약)',
+  'bunjang_login.spec.ts': '번개장터 로그인(카카오톡)',
 };
 
 function App() {
@@ -492,7 +493,8 @@ function App() {
       <main className="main-content">
         {(() => {
           const giftTests = tests.filter(test => test.includes('kakao') || test.includes('generate'));
-          const otherTests = tests.filter(test => !test.includes('kakao') && !test.includes('generate'));
+          const bunjangTests = tests.filter(test => test.includes('bunjang'));
+          const otherTests = tests.filter(test => !test.includes('kakao') && !test.includes('generate') && !test.includes('bunjang'));
 
           const renderTestCard = (test) => {
             const isAuthTest = test.includes('generate') || test === '초.ts';
@@ -559,6 +561,17 @@ function App() {
                   </h2>
                   <div className="test-grid">
                     {giftTests.map(renderTestCard)}
+                  </div>
+                </div>
+              )}
+
+              {bunjangTests.length > 0 && (
+                <div className="category-wrapper" style={{ marginBottom: '2.5rem' }}>
+                  <h2 className="category-title" style={{ fontSize: '1.3rem', color: '#e2e8f0', marginBottom: '1.2rem', paddingLeft: '0.8rem', borderLeft: '4px solid #f97316', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    ⚡ 번개장터 자동화
+                  </h2>
+                  <div className="test-grid">
+                    {bunjangTests.map(renderTestCard)}
                   </div>
                 </div>
               )}
