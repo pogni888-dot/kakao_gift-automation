@@ -31,7 +31,9 @@ test.describe('번개장터 상품 등록', () => {
 
         // 4. a 클래스명 'sc-eXEjpC BltZS' 요소 클릭
         console.log('4. 판매하기 버튼 클릭...');
-        page.getByPlaceholder('상품명을 입력해 주세요.')
+        const sellBtn = page.locator('a.sc-eXEjpC.BltZS').nth(1);
+        await sellBtn.scrollIntoViewIfNeeded();
+        await sellBtn.click();
 
         // 5. 2초 대기
         await page.waitForTimeout(2000);
@@ -65,7 +67,7 @@ test.describe('번개장터 상품 등록', () => {
 
         // 8. input 클래스명 'sc-fONwsr yAEIL' 클릭
         console.log('8. 상품명 입력 필드 클릭...');
-        const nameInput = page.locator('input.sc-fONwsr.yAEIL').first();
+        const nameInput = page.getByPlaceholder('상품명을 입력해 주세요.');
         await nameInput.scrollIntoViewIfNeeded();
         await nameInput.click();
 
