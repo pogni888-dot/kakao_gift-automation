@@ -151,15 +151,22 @@ test.describe('번개장터 상품 등록', () => {
         // 32. 1초 대기
         await page.waitForTimeout(1000);
 
+        // 추천 태그 첫 번째 항목 클릭
+        console.log('추천 태그 첫 번째 항목 클릭...');
+        await page.locator('ul.TagBoxstyle__SuggestedTags-sc-jn2mit-8.ixHygc > li:first-child > button').click();
+
+        // 1초 대기
+        await page.waitForTimeout(1000);
+
         // 33. div 클래스명 하위(>) input 요소 클릭 (가격 입력)
         console.log('33. 가격 입력 필드 클릭...');
-        await page.locator('div.sc-gVyKpa.RBCDN > input').click();
+        await page.locator('div.sc-gVyKpa.RBCDN > div > input').click();
 
         // 34. 1초 대기
         await page.waitForTimeout(1000);
 
         // 35. '10000' 입력
-        await page.locator('div.sc-gVyKpa.RBCDN > input').fill('10000');
+        await page.locator('div.sc-gVyKpa.RBCDN > div > input').fill('10000');
         console.log('35. 가격 입력 완료: 10,000원');
 
         // 36. 3초 대기
