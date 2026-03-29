@@ -31,9 +31,7 @@ test.describe('번개장터 상품 등록', () => {
 
         // 4. a 클래스명 'sc-eXEjpC BltZS' 요소 클릭
         console.log('4. 판매하기 버튼 클릭...');
-        const sellBtn = page.locator('a.sc-eXEjpC.BltZS').nth(1);
-        await sellBtn.scrollIntoViewIfNeeded();
-        await sellBtn.click();
+        page.getByPlaceholder('상품명을 입력해 주세요.')
 
         // 5. 2초 대기
         await page.waitForTimeout(2000);
