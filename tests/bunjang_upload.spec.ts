@@ -31,7 +31,9 @@ test.describe('번개장터 상품 등록', () => {
 
         // 4. a 클래스명 'sc-eXEjpC BltZS' 요소 클릭
         console.log('4. 판매하기 버튼 클릭...');
-        await page.locator('a.sc-eXEjpC.BltZS').nth(1).click();
+        const sellBtn = page.locator('a.sc-eXEjpC.BltZS').nth(1);
+        await sellBtn.scrollIntoViewIfNeeded();
+        await sellBtn.click();
 
         // 5. 2초 대기
         await page.waitForTimeout(2000);
@@ -65,10 +67,12 @@ test.describe('번개장터 상품 등록', () => {
 
         // 8. input 클래스명 'sc-fONwsr yAEIL' 클릭
         console.log('8. 상품명 입력 필드 클릭...');
-        await page.locator('input.sc-fONwsr.yAEIL').first().click();
+        const nameInput = page.locator('input.sc-fONwsr.yAEIL').first();
+        await nameInput.scrollIntoViewIfNeeded();
+        await nameInput.click();
 
         // 9. '상품명테스트입력' 문구 입력
-        await page.locator('input.sc-fONwsr.yAEIL').first().fill('상품명테스트입력');
+        await nameInput.fill('상품명테스트입력');
         console.log('9. 상품명 입력 완료');
 
         // 10. 1초 대기
@@ -76,62 +80,78 @@ test.describe('번개장터 상품 등록', () => {
 
         // 11. 버튼 텍스트가 '여성의류'인 버튼 클릭
         console.log('11. 카테고리 선택: 여성의류...');
-        await page.locator('button:has-text("여성의류")').click();
+        const categoryBtn1 = page.locator('button:has-text("여성의류")');
+        await categoryBtn1.scrollIntoViewIfNeeded();
+        await categoryBtn1.click();
 
         // 12. 1초 대기
         await page.waitForTimeout(1000);
 
         // 13. 버튼 텍스트가 '아우터'인 버튼 클릭
         console.log('13. 카테고리 선택: 아우터...');
-        await page.locator('button:has-text("아우터")').click();
+        const categoryBtn2 = page.locator('button:has-text("아우터")');
+        await categoryBtn2.scrollIntoViewIfNeeded();
+        await categoryBtn2.click();
 
         // 14. 1초 대기
         await page.waitForTimeout(1000);
 
         // 15. 버튼 텍스트가 '패딩'인 버튼 클릭
         console.log('15. 카테고리 선택: 패딩...');
-        await page.locator('button:has-text("패딩")').click();
+        const categoryBtn3 = page.locator('button:has-text("패딩")');
+        await categoryBtn3.scrollIntoViewIfNeeded();
+        await categoryBtn3.click();
 
         // 16. 1초 대기
         await page.waitForTimeout(1000);
 
-        // 17. label 클래스명 'sc-elNKlv kBjqEq' 요소 클릭
-        console.log('17. 라벨 클릭...');
-        await page.locator('label:has(input[type="radio"]):has-text("새 상품 (미사용)")').click();
+        // 17. 새 상품 (미사용) 라디오 클릭
+        console.log('17. 새 상품 (미사용) 선택...');
+        const newProductRadio = page.locator('label:has(input[type="radio"]):has-text("새 상품 (미사용)")');
+        await newProductRadio.scrollIntoViewIfNeeded();
+        await newProductRadio.click();
 
         // 18. 1초 대기
         await page.waitForTimeout(1000);
 
         // 19. input 클래스명 'sc-fONwsr yAEIL sc-hRmvpr eyswfN' 요소 클릭
         console.log('19. 입력 필드 클릭...');
-        await page.locator('input.sc-fONwsr.yAEIL.sc-hRmvpr.eyswfN').click();
+        const sizeInput = page.locator('input.sc-fONwsr.yAEIL.sc-hRmvpr.eyswfN');
+        await sizeInput.scrollIntoViewIfNeeded();
+        await sizeInput.click();
 
         // 20. 1초 대기
         await page.waitForTimeout(1000);
 
         // 21. input value 값이 'Free' 인 요소 클릭
         console.log('21. Free 옵션 선택...');
-        await page.locator('input[value="Free"]').click();
+        const freeOption = page.locator('input[value="Free"]');
+        await freeOption.scrollIntoViewIfNeeded();
+        await freeOption.click();
 
         // 22. 1초 대기
         await page.waitForTimeout(1000);
 
         // 23. 버튼 클래스명 'sc-gEvEer bZhDVM bun-ui-button' 요소 클릭
         console.log('23. 확인 버튼 클릭...');
-        await page.locator('button.sc-gEvEer.bZhDVM.bun-ui-button').click();
+        const confirmBtn = page.locator('button.sc-gEvEer.bZhDVM.bun-ui-button');
+        await confirmBtn.scrollIntoViewIfNeeded();
+        await confirmBtn.click();
 
         // 24. 1초 대기
         await page.waitForTimeout(1000);
 
         // 25. div 클래스명 하위(>)의 textarea 요소 클릭
         console.log('25. 상품 설명 입력 필드 클릭...');
-        await page.locator('div.ProductNewstyle__Content-sc-7fge4a-7.nqDMw > textarea').click();
+        const descTextarea = page.locator('div.ProductNewstyle__Content-sc-7fge4a-7.nqDMw > textarea');
+        await descTextarea.scrollIntoViewIfNeeded();
+        await descTextarea.click();
 
         // 26. 1초 대기
         await page.waitForTimeout(1000);
 
         // 27. '테스트상품설명' 입력
-        await page.locator('div.ProductNewstyle__Content-sc-7fge4a-7.nqDMw > textarea').fill('테스트상품설명');
+        await descTextarea.fill('테스트상품설명');
         console.log('27. 상품 설명 입력 완료');
 
         // 28. 1초 대기
@@ -139,13 +159,15 @@ test.describe('번개장터 상품 등록', () => {
 
         // 29. div 클래스명 하위(>)의 input 요소 클릭 (태그 입력)
         console.log('29. 태그 입력 필드 클릭...');
-        await page.locator('div.TagBoxstyle__WithDeleteAll-sc-jn2mit-12.ihIdoc > input').click();
+        const tagInput = page.locator('div.TagBoxstyle__WithDeleteAll-sc-jn2mit-12.ihIdoc > input');
+        await tagInput.scrollIntoViewIfNeeded();
+        await tagInput.click();
 
         // 30. 1초 대기
         await page.waitForTimeout(1000);
 
         // 31. '태그' 입력
-        await page.locator('div.TagBoxstyle__WithDeleteAll-sc-jn2mit-12.ihIdoc > input').fill('태그');
+        await tagInput.fill('태그');
         console.log('31. 태그 입력 완료');
 
         // 32. 1초 대기
@@ -153,20 +175,24 @@ test.describe('번개장터 상품 등록', () => {
 
         // 추천 태그 첫 번째 항목 클릭
         console.log('추천 태그 첫 번째 항목 클릭...');
-        await page.locator('ul.TagBoxstyle__SuggestedTags-sc-jn2mit-8.ixHygc > li:first-child > button').click();
+        const suggestedTag = page.locator('ul.TagBoxstyle__SuggestedTags-sc-jn2mit-8.ixHygc > li:first-child > button');
+        await suggestedTag.scrollIntoViewIfNeeded();
+        await suggestedTag.click();
 
         // 1초 대기
         await page.waitForTimeout(1000);
 
         // 33. div 클래스명 하위(>) input 요소 클릭 (가격 입력)
         console.log('33. 가격 입력 필드 클릭...');
-        await page.locator('div.sc-gVyKpa.RBCDN > div > input').click();
+        const priceInput = page.locator('div.sc-gVyKpa.RBCDN > div > input');
+        await priceInput.scrollIntoViewIfNeeded();
+        await priceInput.click();
 
         // 34. 1초 대기
         await page.waitForTimeout(1000);
 
         // 35. '10000' 입력
-        await page.locator('div.sc-gVyKpa.RBCDN > div > input').fill('10000');
+        await priceInput.fill('10000');
         console.log('35. 가격 입력 완료: 10,000원');
 
         // 36. 3초 대기
