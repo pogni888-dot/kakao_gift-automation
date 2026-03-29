@@ -65,9 +65,9 @@ test.describe('번개장터 상품 등록', () => {
         // 7. 1초 대기
         await page.waitForTimeout(1000);
 
-        // 8. input 클래스명 'sc-fONwsr yAEIL' 클릭
+        // 8. 상품명 입력 필드 클릭
         console.log('8. 상품명 입력 필드 클릭...');
-        const nameInput = page.locator('input.sc-fONwsr.yAEIL').first();
+        const nameInput = page.getByPlaceholder('상품명을 입력해주세요');
         await nameInput.scrollIntoViewIfNeeded();
         await nameInput.click();
 
@@ -114,9 +114,9 @@ test.describe('번개장터 상품 등록', () => {
         // 18. 1초 대기
         await page.waitForTimeout(1000);
 
-        // 19. input 클래스명 'sc-fONwsr yAEIL sc-hRmvpr eyswfN' 요소 클릭
-        console.log('19. 입력 필드 클릭...');
-        const sizeInput = page.locator('input.sc-fONwsr.yAEIL.sc-hRmvpr.eyswfN');
+        // 19. 사이즈 선택 필드 클릭
+        console.log('19. 사이즈 선택 필드 클릭...');
+        const sizeInput = page.getByPlaceholder('사이즈를 선택해 주세요');
         await sizeInput.scrollIntoViewIfNeeded();
         await sizeInput.click();
 
@@ -132,18 +132,18 @@ test.describe('번개장터 상품 등록', () => {
         // 22. 1초 대기
         await page.waitForTimeout(1000);
 
-        // 23. 버튼 클래스명 'sc-gEvEer bZhDVM bun-ui-button' 요소 클릭
-        console.log('23. 확인 버튼 클릭...');
-        const confirmBtn = page.locator('button.sc-gEvEer.bZhDVM.bun-ui-button');
+        // 23. '선택 완료' 버튼 클릭
+        console.log('23. 선택 완료 버튼 클릭...');
+        const confirmBtn = page.getByRole('button', { name: '선택 완료' });
         await confirmBtn.scrollIntoViewIfNeeded();
         await confirmBtn.click();
 
         // 24. 1초 대기
         await page.waitForTimeout(1000);
 
-        // 25. div 클래스명 하위(>)의 textarea 요소 클릭
+        // 25. 설명 textarea 클릭
         console.log('25. 상품 설명 입력 필드 클릭...');
-        const descTextarea = page.locator('div.ProductNewstyle__Content-sc-7fge4a-7.nqDMw > textarea');
+        const descTextarea = page.locator('textarea').first();
         await descTextarea.scrollIntoViewIfNeeded();
         await descTextarea.click();
 
@@ -157,9 +157,9 @@ test.describe('번개장터 상품 등록', () => {
         // 28. 1초 대기
         await page.waitForTimeout(1000);
 
-        // 29. div 클래스명 하위(>)의 input 요소 클릭 (태그 입력)
+        // 29. 태그 입력 필드 클릭
         console.log('29. 태그 입력 필드 클릭...');
-        const tagInput = page.locator('div.TagBoxstyle__WithDeleteAll-sc-jn2mit-12.ihIdoc > input');
+        const tagInput = page.getByPlaceholder('태그를 입력해 주세요. (최대 5개)');
         await tagInput.scrollIntoViewIfNeeded();
         await tagInput.click();
 
