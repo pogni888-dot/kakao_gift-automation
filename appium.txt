@@ -1,0 +1,35 @@
+[ Appium 테스트 스크립트 실행 방법 및 선행 작업 ]
+
+1. 안드로이드 에뮬레이터(또는 실제 기기) 실행
+  - Android Studio를 통해 에뮬레이터(AVD)를 켭니다. (현재 스크립트인 yeogi_appium.ts 내부 capabilities에 'emulator-5554'가 지정되어 있습니다.)
+  - 터미널(또는 명령 프롬프트)을 열고 아래 명령어를 입력하여 기기가 "device" 상태로 정상 연결되었는지 확인합니다.
+    > 명령어: adb devices
+
+2. Appium 서버 실행
+  - 기기가 연결된 것을 확인했다면, Appium 서버를 백그라운드에서 구동해야 합니다. 새로운 터미널을 열고 아래 명령어를 입력합니다.
+    > 명령어: appium
+  - 실행 후 `Appium REST http interface listener started on http://0.0.0.0:4723/` (또는 비슷한 문구)가 나타나며 서버가 대기 상태가 되어야 합니다. 창을 닫지 마세요.
+
+3. 테스트 스크립트 실행
+  - 1번(에뮬레이터)과 2번(Appium 서버)이 동작하고 있는 상태에서, 새로운 터미널 창을 하나 더 엽니다.
+  - 현재 프로젝트 폴더인 `levyplay` 경로로 이동한 뒤, tsx를 사용하여 테스트 코드를 실행합니다.
+
+  ★★★ 주의: ts-node 대신 tsx를 사용해야 합니다! ★★★
+  (ts-node은 ESM import 구문을 처리하지 못해 무한 로딩에 걸림)
+
+    > 경로 이동 명령어: cd C:\Users\bernice\Downloads\levyplay
+    > 앱피움 스크립트 실행 명령어: npx tsx tests/yeogi_appium.ts
+
+=======================================================
+[ 요약 명령어 실행 순서 ]
+
+[터미널 1] - 기기 확인 점검용 (에뮬레이터가 켜진 상태여야 함)
+> adb devices
+
+[터미널 2] - Appium 서버 (계속 켜두기)
+> appium
+
+[터미널 3] - 코드 실행기
+> cd C:\Users\bernice\Downloads\levyplay
+> npx tsx tests/yeogi_appium.ts
+=======================================================

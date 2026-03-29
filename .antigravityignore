@@ -1,0 +1,31 @@
+# .antigravityignore
+
+# 패키지 및 가상환경
+node_modules/
+.venv/
+venv/
+__pycache__/
+
+# 빌드 및 컴파일 결과물
+build/
+dist/
+*.pyc
+*.o
+*.exe
+*.dll
+
+# 하드웨어/RTL 설계 관련 임시 및 로그 파일 (Vivado 등)
+*.jou
+*.log
+*.pb
+*.wdb
+*.dir/
+.Xil/
+
+# 기타 용량이 큰 파일
+*.csv
+*.db
+*.sqlite3
+*.pdf
+*.zip
+.git/

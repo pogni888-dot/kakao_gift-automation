@@ -14,7 +14,8 @@
   "type": "commonjs",
   "devDependencies": {
     "@playwright/test": "^1.56.1",
-    "@types/node": "^24.10.1"
+    "@types/node": "^24.10.1",
+    "tsx": "^4.21.0"
   },
   "dependencies": {
     "concurrently": "^9.2.1",
@@ -23,6 +24,8 @@
     "serve-index": "*",
     "socket.io": "^4.8.3",
     "socket.io-client": "^4.8.3",
-    "sqlite3": "^5.1.7"
+    "sqlite3": "^5.1.7",
+    "ts-node": "^10.9.2",
+    "webdriverio": "^9.27.0"
   }
 }
