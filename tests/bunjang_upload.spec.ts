@@ -182,9 +182,9 @@ test.describe('번개장터 상품 등록', () => {
         // 1초 대기
         await page.waitForTimeout(1000);
 
-        // 33. div 클래스명 하위(>) input 요소 클릭 (가격 입력)
+        // 33. 가격 입력 필드 클릭
         console.log('33. 가격 입력 필드 클릭...');
-        const priceInput = page.locator('div.sc-gVyKpa.RBCDN > div > input');
+        const priceInput = page.getByPlaceholder('가격을 입력해 주세요.');
         await priceInput.scrollIntoViewIfNeeded();
         await priceInput.click();
 
