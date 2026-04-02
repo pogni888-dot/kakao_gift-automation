@@ -71,6 +71,9 @@ test.describe('번개장터 상품 등록', () => {
         await nameInput.scrollIntoViewIfNeeded();
         await nameInput.click();
 
+        await page.waitForTimeout(1000);
+
+
         // 9. '상품명테스트입력' 문구 입력
         await nameInput.fill('상품명테스트입력');
         console.log('9. 상품명 입력 완료');

@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from 'react';
 import { io } from 'socket.io-client';
-import { Play, Square, Terminal, CheckCircle, XCircle, Activity, KeyRound } from 'lucide-react';
+import { Play, Square, Terminal, CheckCircle, XCircle, Activity, KeyRound, Send } from 'lucide-react';
 import './App.css';
 
 const isProduction = import.meta.env.PROD;
@@ -37,6 +37,18 @@ function App() {
   const [authId, setAuthId] = useState('');
   const [authPw, setAuthPw] = useState('');
   const [pendingTest, setPendingTest] = useState(null);
+
+  // === 탭 전환 ===
+  const [activeTab, setActiveTab] = useState('automation');
+
+  // === API Test 상태 ===
+  const [apiSubTab, setApiSubTab] = useState('get-users');
+  const [apiMethod, setApiMethod] = useState('GET');
+  const [apiUrl, setApiUrl] = useState('/api/users');
+  const [apiBody, setApiBody] = useState('');
+  const [apiResponse, setApiResponse] = useState(null);
+  const [apiLoading, setApiLoading] = useState(false);
+  const [apiStatusCode, setApiStatusCode] = useState(null);
 
   // 현재 로그인된 유저
   const [loggedInUser, setLoggedInUser] = useState(() => {
@@ -263,12 +275,77 @@ function App() {
     window.location.reload();
   };
 
+  // === API Test 서브탭 설정 ===
+  const API_SUB_TABS = [
+    { id: 'get-users', label: '회원정보 조회', method: 'GET', url: '/api/users', body: '' },
+    { id: 'signup', label: '회원가입', method: 'POST', url: '/api/signup', body: JSON.stringify({ name: '홍길동', user_id: 'testuser', password: 'password123' }, null, 2) },
+    { id: 'login', label: '로그인', method: 'POST', url: '/api/login', body: JSON.stringify({ user_id: 'testuser', password: 'password123' }, null, 2) },
+    { id: 'update', label: '수정', method: 'PUT', url: '/api/users/1', body: JSON.stringify({ name: '김철수' }, null, 2) },
+    { id: 'delete', label: '삭제', method: 'DELETE', url: '/api/users/1', body: '' },
+  ];
+
+  const handleApiSubTabClick = (tab) => {
+    setApiSubTab(tab.id);
+    setApiMethod(tab.method);
+    setApiUrl(tab.url);
+    setApiBody(tab.body);
+    setApiResponse(null);
+    setApiStatusCode(null);
+  };
+
+  const handleApiSend = async () => {
+    setApiLoading(true);
+    setApiResponse(null);
+    setApiStatusCode(null);
+    try {
+      const options = {
+        method: apiMethod,
+        headers: { 'Content-Type': 'application/json' },
+      };
+      if (apiMethod !== 'GET' && apiMethod !== 'DELETE' && apiBody.trim()) {
+        options.body = apiBody;
+      }
+      const fullUrl = apiUrl.startsWith('http') ? apiUrl : `${API_BASE}${apiUrl}`;
+      const res = await fetch(fullUrl, options);
+      setApiStatusCode(res.status);
+      const contentType = res.headers.get('content-type');
+      if (contentType && contentType.includes('application/json')) {
+        const data = await res.json();
+        setApiResponse(data);
+      } else {
+        const text = await res.text();
+        setApiResponse(text);
+      }
+    } catch (err) {
+      setApiResponse({ error: err.message });
+      setApiStatusCode('ERR');
+    } finally {
+      setApiLoading(false);
+    }
+  };
+
   return (
     <div className="container">
       <header className="header">
-        <div className="logo">
-          <Activity className="icon-pulse" size={28} />
-          <h1>최민호 자동화 포트폴리오</h1>
+        <div className="header-left">
+          <div className="logo">
+            <Activity className="icon-pulse" size={28} />
+            <h1>최민호 자동화 포트폴리오</h1>
+          </div>
+          <nav className="main-tabs">
+            <button
+              className={`main-tab ${activeTab === 'automation' ? 'active' : ''}`}
+              onClick={() => setActiveTab('automation')}
+            >
+              Automation
+            </button>
+            <button
+              className={`main-tab ${activeTab === 'api-test' ? 'active' : ''}`}
+              onClick={() => setActiveTab('api-test')}
+            >
+              API Test
+            </button>
+          </nav>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           {!loggedInUser ? (
@@ -289,7 +366,7 @@ function App() {
         </div>
       </header>
 
-      {isSessionExpired && (
+      {isSessionExpired && activeTab === 'automation' && (
         <div className="session-warning-banner fade-in">
           ⚠️ <strong>로그인 세션이 만료되었습니다.</strong> 원활한 테스트를 위해 <code>generate_auth.spec.ts</code>를 먼저 실행해주세요.
         </div>
@@ -492,141 +569,227 @@ function App() {
       )}
 
       <main className="main-content">
-        {(() => {
-          const giftTests = tests.filter(test => test.includes('kakao') || test.includes('generate'));
-          const bunjangTests = tests.filter(test => test.includes('bunjang'));
-          const otherTests = tests.filter(test => !test.includes('kakao') && !test.includes('generate') && !test.includes('bunjang'));
+        {/* ========== Automation 탭 ========== */}
+        {activeTab === 'automation' && (
+          <>
+            {(() => {
+              const giftTests = tests.filter(test => test.includes('kakao') || test.includes('generate'));
+              const bunjangTests = tests.filter(test => test.includes('bunjang'));
+              const otherTests = tests.filter(test => !test.includes('kakao') && !test.includes('generate') && !test.includes('bunjang'));
 
-          const renderTestCard = (test) => {
-            const isAuthTest = test.includes('generate') || test === 'bunjang_login.spec.ts' || test === '초.ts';
-            const isUrgent = isAuthTest && isSessionExpired;
+              const renderTestCard = (test) => {
+                const isAuthTest = test.includes('generate') || test === 'bunjang_login.spec.ts' || test === '초.ts';
+                const isUrgent = isAuthTest && isSessionExpired;
+                const isDependentTest = /resume|wishlist|giftbox|bunjang_upload/i.test(test);
+                const showTooltip = testDescriptions[test] || isAuthTest || isDependentTest;
 
-            // [New] Generate 파일 선행 실행이 필요한 테스트 파일들
-            const isDependentTest = /resume|wishlist|giftbox|bunjang_upload/i.test(test);
-            const showTooltip = testDescriptions[test] || isAuthTest || isDependentTest;
-
-            return (
-              <div key={test} className={`test-card ${activeTest === test ? 'running' : ''} ${isUrgent ? 'urgent' : ''}`}>
-                {showTooltip && (
-                  <div className="tooltip">
-                    {testDescriptions[test]}
-                    {isAuthTest && (
-                      <div style={{ color: '#ef4444', marginTop: '6px', fontSize: '0.8rem', paddingTop: '4px', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
-                        🔍 세션 생성/갱신용
+                return (
+                  <div key={test} className={`test-card ${activeTest === test ? 'running' : ''} ${isUrgent ? 'urgent' : ''}`}>
+                    {showTooltip && (
+                      <div className="tooltip">
+                        {testDescriptions[test]}
+                        {isAuthTest && (
+                          <div style={{ color: '#ef4444', marginTop: '6px', fontSize: '0.8rem', paddingTop: '4px', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
+                            🔍 세션 생성/갱신용
+                          </div>
+                        )}
+                        {isDependentTest && (
+                          <div style={{ color: '#ef4444', marginTop: '6px', fontSize: '0.8rem', paddingTop: '4px', borderTop: '1px solid rgba(255,255,255,0.1)', fontWeight: 'bold' }}>
+                            {test.includes('bunjang') ? '⚠ login 파일 실행 후 로그인 세션 생성 필요' : '⚠ generate 파일 실행 후 로그인 세션 생성 필요'}
+                          </div>
+                        )}
+                        <div className="tooltip-arrow"></div>
                       </div>
                     )}
-                    {isDependentTest && (
-                      <div style={{ color: '#ef4444', marginTop: '6px', fontSize: '0.8rem', paddingTop: '4px', borderTop: '1px solid rgba(255,255,255,0.1)', fontWeight: 'bold' }}>
-                        {test.includes('bunjang') ? '⚠ login 파일 실행 후 로그인 세션 생성 필요' : '⚠ generate 파일 실행 후 로그인 세션 생성 필요'}
-                      </div>
-                    )}
-                    <div className="tooltip-arrow"></div>
+                    <div className="card-header">
+                      <div className="file-icon">TS</div>
+                      <h3>{test}</h3>
+                    </div>
+                    <div className="card-actions">
+                      {activeTest === test && (
+                        <div className="mini-loader" title="Running...">
+                          <div className="spinner"></div>
+                        </div>
+                      )}
+                      {activeTest === test ? (
+                        <button onClick={stopTest} className="btn btn-stop">
+                          <Square size={16} /> Stop
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => runTest(test)}
+                          className="btn btn-run"
+                          disabled={activeTest !== null}
+                        >
+                          <Play size={16} />
+                          Run Test
+                        </button>
+                      )}
+                    </div>
                   </div>
-                )}
-                <div className="card-header">
-                  <div className="file-icon">TS</div>
-                  <h3>{test}</h3>
-                </div>
-                <div className="card-actions">
-                  {activeTest === test && (
-                    <div className="mini-loader" title="Running...">
-                      <div className="spinner"></div>
+                );
+              };
+
+              return (
+                <>
+                  {giftTests.length > 0 && (
+                    <div className="category-wrapper" style={{ marginBottom: '2.5rem' }}>
+                      <h2 className="category-title" style={{ fontSize: '1.3rem', color: '#e2e8f0', marginBottom: '1.2rem', paddingLeft: '0.8rem', borderLeft: '4px solid #facc15', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        🎁 선물하기 자동화
+                      </h2>
+                      <div className="test-grid">
+                        {giftTests.map(renderTestCard)}
+                      </div>
                     </div>
                   )}
 
-                  {activeTest === test ? (
-                    <button onClick={stopTest} className="btn btn-stop">
-                      <Square size={16} /> Stop
-                    </button>
-                  ) : (
-                    <button
-                      onClick={() => runTest(test)}
-                      className="btn btn-run"
-                      disabled={activeTest !== null}
-                    >
-                      <Play size={16} />
-                      Run Test
-                    </button>
+                  {bunjangTests.length > 0 && (
+                    <div className="category-wrapper" style={{ marginBottom: '2.5rem' }}>
+                      <h2 className="category-title" style={{ fontSize: '1.3rem', color: '#e2e8f0', marginBottom: '1.2rem', paddingLeft: '0.8rem', borderLeft: '4px solid #f97316', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        ⚡ 번개장터 자동화
+                      </h2>
+                      <div className="test-grid">
+                        {bunjangTests.map(renderTestCard)}
+                      </div>
+                    </div>
                   )}
-                </div>
+
+                  {otherTests.length > 0 && (
+                    <div className="category-wrapper" style={{ marginBottom: '2.5rem' }}>
+                      <h2 className="category-title" style={{ fontSize: '1.3rem', color: '#e2e8f0', marginBottom: '1.2rem', paddingLeft: '0.8rem', borderLeft: '4px solid #3b82f6', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        📦 여기어때 자동화
+                      </h2>
+                      <div className="test-grid">
+                        {otherTests.map(renderTestCard)}
+                      </div>
+                    </div>
+                  )}
+
+                  {tests.length === 0 && <div className="empty-state">No tests found in /tests folder.</div>}
+                </>
+              );
+            })()}
+
+            {/* 사용자 입력 전송 컨트롤 (Test Interaction) */}
+            <div className="input-control-section fade-in">
+              <div className="input-wrapper">
+                <input
+                  type="text"
+                  value={userInput}
+                  onChange={(e) => setUserInput(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && sendUserInput()}
+                  placeholder="💬 테스트 중 보안문자 등이 나오면 여기에 입력하고 엔터를 누르세요..."
+                  disabled={!activeTest}
+                  className="user-input-field"
+                />
+                <button
+                  className="btn btn-send"
+                  onClick={sendUserInput}
+                  disabled={!activeTest || !userInput.trim()}
+                >
+                  Send Input
+                </button>
               </div>
-            );
-          };
+            </div>
 
-          return (
-            <>
-              {giftTests.length > 0 && (
-                <div className="category-wrapper" style={{ marginBottom: '2.5rem' }}>
-                  <h2 className="category-title" style={{ fontSize: '1.3rem', color: '#e2e8f0', marginBottom: '1.2rem', paddingLeft: '0.8rem', borderLeft: '4px solid #facc15', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    🎁 선물하기 자동화
-                  </h2>
-                  <div className="test-grid">
-                    {giftTests.map(renderTestCard)}
-                  </div>
+            <div className="terminal-section">
+              <div className="terminal-header">
+                <Terminal size={18} />
+                <span>Console Output</span>
+                <button className="clear-btn" onClick={() => setLogs([])}>Clear</button>
+              </div>
+              <div className="terminal-window" ref={terminalWindowRef}>
+                {logs.map((log, i) => (
+                  <div key={i} className="log-line">{log}</div>
+                ))}
+              </div>
+            </div>
+          </>
+        )}
+
+        {/* ========== API Test 탭 ========== */}
+        {activeTab === 'api-test' && (
+          <div className="api-test-panel fade-in">
+            {/* 서브 탭 (회원정보 조회, 회원가입, 로그인, 수정, 삭제) */}
+            <div className="api-sub-tabs">
+              {API_SUB_TABS.map(tab => (
+                <button
+                  key={tab.id}
+                  className={`api-sub-tab ${apiSubTab === tab.id ? 'active' : ''}`}
+                  onClick={() => handleApiSubTabClick(tab)}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+
+            {/* 요청 영역 */}
+            <div className="api-request-area">
+              <div className="api-url-bar">
+                <select
+                  className="api-method-select"
+                  value={apiMethod}
+                  onChange={(e) => setApiMethod(e.target.value)}
+                >
+                  <option value="GET">GET</option>
+                  <option value="POST">POST</option>
+                  <option value="PUT">PUT</option>
+                  <option value="DELETE">DELETE</option>
+                </select>
+                <input
+                  className="api-url-input"
+                  type="text"
+                  value={apiUrl}
+                  onChange={(e) => setApiUrl(e.target.value)}
+                  placeholder="/api/users"
+                />
+                <button
+                  className="btn btn-api-send"
+                  onClick={handleApiSend}
+                  disabled={apiLoading}
+                >
+                  {apiLoading ? <div className="spinner" style={{ width: 16, height: 16, borderWidth: 2 }}></div> : <Send size={16} />}
+                  Send
+                </button>
+              </div>
+
+              {/* POST/PUT일 때 Body 입력 */}
+              {(apiMethod === 'POST' || apiMethod === 'PUT') && (
+                <div className="api-body-section">
+                  <label className="api-body-label">Request Body (JSON)</label>
+                  <textarea
+                    className="api-body-textarea"
+                    value={apiBody}
+                    onChange={(e) => setApiBody(e.target.value)}
+                    placeholder='{"key": "value"}'
+                    rows={6}
+                  />
                 </div>
               )}
+            </div>
 
-              {bunjangTests.length > 0 && (
-                <div className="category-wrapper" style={{ marginBottom: '2.5rem' }}>
-                  <h2 className="category-title" style={{ fontSize: '1.3rem', color: '#e2e8f0', marginBottom: '1.2rem', paddingLeft: '0.8rem', borderLeft: '4px solid #f97316', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    ⚡ 번개장터 자동화
-                  </h2>
-                  <div className="test-grid">
-                    {bunjangTests.map(renderTestCard)}
-                  </div>
-                </div>
-              )}
-
-              {otherTests.length > 0 && (
-                <div className="category-wrapper" style={{ marginBottom: '2.5rem' }}>
-                  <h2 className="category-title" style={{ fontSize: '1.3rem', color: '#e2e8f0', marginBottom: '1.2rem', paddingLeft: '0.8rem', borderLeft: '4px solid #3b82f6', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    📦 여기어때 자동화
-                  </h2>
-                  <div className="test-grid">
-                    {otherTests.map(renderTestCard)}
-                  </div>
-                </div>
-              )}
-
-              {tests.length === 0 && <div className="empty-state">No tests found in /tests folder.</div>}
-            </>
-          );
-        })()}
-
-        {/* 사용자 입력 전송 컨트롤 (Test Interaction) */}
-        <div className="input-control-section fade-in">
-          <div className="input-wrapper">
-            <input
-              type="text"
-              value={userInput}
-              onChange={(e) => setUserInput(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && sendUserInput()}
-              placeholder="💬 테스트 중 보안문자 등이 나오면 여기에 입력하고 엔터를 누르세요..."
-              disabled={!activeTest}
-              className="user-input-field"
-            />
-            <button
-              className="btn btn-send"
-              onClick={sendUserInput}
-              disabled={!activeTest || !userInput.trim()}
-            >
-              Send Input
-            </button>
+            {/* 응답 영역 */}
+            <div className="api-response-area">
+              <div className="api-response-header">
+                <span>Response</span>
+                {apiStatusCode !== null && (
+                  <span className={`api-status-code ${Number(apiStatusCode) >= 200 && Number(apiStatusCode) < 300 ? 'success' : 'error'}`}>
+                    Status: {apiStatusCode}
+                  </span>
+                )}
+              </div>
+              <div className="api-response-body">
+                {apiLoading ? (
+                  <div className="api-loading">요청 중...</div>
+                ) : apiResponse !== null ? (
+                  <pre className="api-json-output">{typeof apiResponse === 'string' ? apiResponse : JSON.stringify(apiResponse, null, 2)}</pre>
+                ) : (
+                  <div className="api-placeholder">서브 탭을 선택하고 Send 버튼을 눌러 API를 테스트하세요.</div>
+                )}
+              </div>
+            </div>
           </div>
-        </div>
-
-        <div className="terminal-section">
-          <div className="terminal-header">
-            <Terminal size={18} />
-            <span>Console Output</span>
-            <button className="clear-btn" onClick={() => setLogs([])}>Clear</button>
-          </div>
-          <div className="terminal-window" ref={terminalWindowRef}>
-            {logs.map((log, i) => (
-              <div key={i} className="log-line">{log}</div>
-            ))}
-          </div>
-        </div>
+        )}
       </main>
     </div>
   );
